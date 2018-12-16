@@ -1,4 +1,5 @@
-build/
-src/
+builds/
+web-vault/
 
 *.tar.gz
+*.tar.gz.text
