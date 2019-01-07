@@ -32,7 +32,7 @@
  
 +/**** START Bitwarden_RS CHANGES ****/
 +/* Hide any link pointing to billing */
-+a[href^="#/settings/billing"] {display: none !important; }
++a[href$="/settings/billing"] {display: none !important; }
 +
 +/* Hide organization plans */
 +app-create-organization > form > div.form-check { display: none !important; }
