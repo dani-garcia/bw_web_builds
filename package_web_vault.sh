@@ -78,7 +78,7 @@ find build -name "*.map" -delete
 
 # Prepare the final archives
 cd build
-tar -czvf ../../$OUTPUT_NAME *
+tar -czvf ../../$OUTPUT_NAME * --owner=0 --group=0
 
 cd ../..
 
