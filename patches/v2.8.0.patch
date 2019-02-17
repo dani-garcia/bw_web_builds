@@ -59,6 +59,11 @@ index 5c114af5..6839385d 100644
 +/* Hide organization plans */
 +app-create-organization > form > div.form-check { display: none !important; }
 +app-create-organization > form > h2.mt-5 { display: none !important; }
++
++/* Hide Tax Info in Organization settings */
++app-org-account > div.secondary-header.border-0.mb-0:nth-child(3) { display: none !important; }
++app-org-account > p { display: none !important; }
++app-org-account > a.btn.btn-outline-secondary { display: none !important; }
 +/**** END Bitwarden_RS CHANGES ****/
 +
  $primary: #3c8dbc;
