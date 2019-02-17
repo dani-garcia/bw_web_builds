@@ -40,7 +40,7 @@ index 5560c476..a9b954a8 100644
 index 5c114af5..6839385d 100644
 --- a/src/scss/styles.scss
 +++ b/src/scss/styles.scss
-@@ -1,5 +1,23 @@
+@@ -1,5 +1,28 @@
  @import "../css/webfonts.css";
  
 +/**** START Bitwarden_RS CHANGES ****/
