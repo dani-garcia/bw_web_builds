@@ -74,7 +74,7 @@ npm install
 npm run dist
 
 # Delete debugging map files, optional
-find build -name "*.map" -delete
+#find build -name "*.map" -delete
 
 # Prepare the final archives
 cd build
