@@ -63,7 +63,7 @@ git checkout $WEB_REF
 npm run sub:update
 
 ## How to create patches
-# git --no-pager diff --minimal > changes.patch
+# git --no-pager diff --no-color --minimal > changes.patch
 ## How to apply patches
 # git apply changes.patch
 
