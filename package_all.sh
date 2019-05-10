@@ -19,3 +19,6 @@ sh package_web_vault.sh
 
 export WEB_REF="v2.8.0"
 sh package_web_vault.sh
+
+export WEB_REF="v2.10.0"
+sh package_web_vault.sh
