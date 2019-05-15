@@ -1,5 +1,5 @@
 diff --git a/src/app/services/services.module.ts b/src/app/services/services.module.ts
-index f1b5b392..2bfc2f2e 100644
+index 9c152ae1..218e9243 100644
 --- a/src/app/services/services.module.ts
 +++ b/src/app/services/services.module.ts
 @@ -120,20 +120,16 @@ const notificationsService = new NotificationsService(userService, syncService,
@@ -40,7 +40,7 @@ index 5560c476..a9b954a8 100644
              this.ngZone.run(() => {
                  this.u2fListening = false;
 diff --git a/src/scss/styles.scss b/src/scss/styles.scss
-index 3df655fd..7e57cffe 100644
+index 2e1dbec9..2d9b635f 100644
 --- a/src/scss/styles.scss
 +++ b/src/scss/styles.scss
 @@ -1,5 +1,34 @@
@@ -78,3 +78,15 @@ index 3df655fd..7e57cffe 100644
  $primary: #3c8dbc;
  $primary-accent: #286090;
  $secondary: #ced4da;
+diff --git a/webpack.config.js b/webpack.config.js
+index aecb1860..44acdc1d 100644
+--- a/webpack.config.js
++++ b/webpack.config.js
+@@ -170,6 +170,7 @@ const config = {
+         },
+         minimizer: [
+             new TerserPlugin({
++                sourceMap: true,
+                 terserOptions: {
+                     safari10: true,
+                 },
