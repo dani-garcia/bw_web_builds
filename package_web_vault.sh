@@ -61,9 +61,6 @@ git pull origin master
 git checkout "$WEB_REF"
 git submodule update --recursive --init
 
-# Update submodule
-npm run sub:update
-
 ## How to create patches
 # git --no-pager diff --no-color --minimal > changes.patch
 ## How to apply patches
