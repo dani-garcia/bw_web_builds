@@ -76,7 +76,8 @@ npm run dist
 #find build -name "*.map" -delete
 
 # Prepare the final archives
-tar -czvf "../$OUTPUT_NAME" build --owner=0 --group=0
+mv build web-vault
+tar -czvf "../$OUTPUT_NAME" web-vault --owner=0 --group=0
 
 cd ..
 
