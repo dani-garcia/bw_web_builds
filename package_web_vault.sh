@@ -9,37 +9,14 @@ handle_error() {
 trap 'handle_error $LINENO $?' ERR
 
 # Ask for ref if not provided
-if [[ -z "$WEB_REF" ]]; then
+if [[ -z "$VAULT_VERSION" ]]; then
   read -rp "Input a git ref (commit hash, branch name, tag name, 'master'): " input
-  WEB_REF="$input"
+  VAULT_VERSION="$input"
 fi
-
-# Ask if the result will be uploaded to github releases
-if [[ -z $UPLOAD_VAULT ]]; then
-  read -rp "Upload the result to GitHub Releases? (y/n): " input
-  UPLOAD_VAULT="$input"
-fi
-
-# If a patch was not provided, try to choose one
-if [[ -z $PATCH_NAME ]]; then
-    # If a patch with the same name as the ref exists, use it
-    if [ -f "patches/$WEB_REF.patch" ]; then
-        echo "Patch file found, using that"
-        PATCH_NAME="$WEB_REF.patch"
-    else
-        echo "Patch file not found, using latest"
-        # If not, use the latest one
-        PATCH_NAME="$(find patches -printf "%f\\n" | sort -V | tail -n1)"
-    fi
-fi
-
-echo "Building git ref: $WEB_REF"
-echo "Using patch: $PATCH_NAME"
 
 VAULT_FOLDER=web-vault
 OUTPUT_FOLDER=builds
-OUTPUT_NAME="$OUTPUT_FOLDER/bw_web_$WEB_REF.tar.gz"
-OUTPUT_MSG="$OUTPUT_NAME.text"
+OUTPUT_NAME="$OUTPUT_FOLDER/bw_web_$VAULT_VERSION.tar.gz"
 
 mkdir -p "$OUTPUT_FOLDER"
 
@@ -58,15 +35,14 @@ git fetch --tags
 git pull origin master
 
 # Checkput the branch we want
-git checkout "$WEB_REF"
+git checkout "$VAULT_VERSION"
 git submodule update --recursive --init
 
 ## How to create patches
 # git --no-pager diff --no-color --minimal > changes.patch
 ## How to apply patches
 # git apply changes.patch
-
-git apply "../patches/$PATCH_NAME"
+. ../apply_patches.sh
 
 # Build
 npm install
@@ -78,12 +54,3 @@ npm run dist
 # Prepare the final archives
 mv build web-vault
 tar -czvf "../$OUTPUT_NAME" web-vault --owner=0 --group=0
-
-cd ..
-
-if [[ $UPLOAD_VAULT =~ ^[Yy]$ ]]
-then
-    sed "s/<VERSION>/$WEB_REF/g" release_template.md > "$OUTPUT_MSG"
-    # Install from here: https://hub.github.com/
-    hub release create -o -a "$OUTPUT_NAME" -F "$OUTPUT_MSG $WEB_REF"
-fi

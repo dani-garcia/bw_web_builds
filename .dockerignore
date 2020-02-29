@@ -1,0 +1,7 @@
+# Local build artifacts
+builds
+web-vault
+
+# Documentation
+*.md
+*.txt
