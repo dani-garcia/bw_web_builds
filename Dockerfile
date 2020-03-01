@@ -41,8 +41,10 @@ RUN npm run dist
 RUN mv build web-vault
 RUN tar -czvf "bw_web_vault.tar.gz" web-vault --owner=0 --group=0
 
-# We copy the final result as a separate image so there's no need to download all the intermediate steps
+# We copy the final result as a separate empty image so there's no need to download all the intermediate steps
+# The result is included both uncompressed and as a tar.gz, to be able to use it in the docker images and the github releases directly
 FROM scratch
 COPY --from=build /vault/bw_web_vault.tar.gz /bw_web_vault.tar.gz
-# Added so docker create works
-CMD ["bash"]
+COPY --from=build /vault/web-vault /web-vault
+# Added so docker create works, can't actually run a scratch image
+CMD [""]
