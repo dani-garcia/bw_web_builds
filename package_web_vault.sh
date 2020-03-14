@@ -54,3 +54,4 @@ npm run dist
 # Prepare the final archives
 mv build web-vault
 tar -czvf "../$OUTPUT_NAME" web-vault --owner=0 --group=0
+mv web-vault build
