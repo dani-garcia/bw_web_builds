@@ -8,6 +8,10 @@
 #    Note: you can use --build-arg to specify the version to build:
 #    docker build -t web_vault_build --build-arg VAULT_VERSION=master .
 
+#    image_id=$(docker create bitwardenrs/web-vault@sha256:feb3f46d15738191b9043be4cdb1be2c0078ed411e7b7be73a2f4fcbca01e13c)
+#    docker cp $image_id:/bw_web_vault.tar.gz .
+#    docker rm $image_id
+
 FROM node:13.8.0-stretch as build
 
 # Prepare the folder to enable non-root, otherwise npm will refuse to run the postinstall
@@ -18,8 +22,8 @@ USER node
 # Can be a tag, release, but prefer a commit hash because it's not changeable
 # https://github.com/bitwarden/web/commit/$VAULT_VERSION
 #
-# Using https://github.com/bitwarden/web/releases/tag/v2.13.1
-ARG VAULT_VERSION=eaa6bc12ce348952ee805b7f598396eef72c3519
+# Using https://github.com/bitwarden/web/releases/tag/v2.13.2
+ARG VAULT_VERSION=5bf3ca2708ade4c5d177dda3290829ca5b1f0f13
 
 RUN git clone https://github.com/bitwarden/web.git /vault
 WORKDIR /vault
