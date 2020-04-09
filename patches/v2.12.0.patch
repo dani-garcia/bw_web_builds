@@ -1,8 +1,23 @@
+diff --git a/src/app/app.component.ts b/src/app/app.component.ts
+index 2c694d95..bba34865 100644
+--- a/src/app/app.component.ts
++++ b/src/app/app.component.ts
+@@ -140,6 +140,10 @@ export class AppComponent implements OnDestroy, OnInit {
+                         }
+                         break;
+                     case 'showToast':
++                        if (typeof message.text === "string" && (message.text.indexOf("this.subtle") != -1 || message.text.indexOf("importKey") != -1)) {
++                            message.title="This browser requires HTTPS to use the web vault";
++                            message.text="Check the bitwarden_rs wiki for details on how to enable it";
++                        }
+                         this.showToast(message);
+                         break;
+                     case 'analyticsEventTrack':
 diff --git a/src/app/services/services.module.ts b/src/app/services/services.module.ts
-index a92bf70c..0ebcfc8f 100644
+index c74261dd..f61ccefe 100644
 --- a/src/app/services/services.module.ts
 +++ b/src/app/services/services.module.ts
-@@ -123,22 +123,31 @@ const environmentService = new EnvironmentService(apiService, storageService, no
+@@ -127,22 +127,31 @@ const environmentService = new EnvironmentService(apiService, storageService, no
  const auditService = new AuditService(cryptoFunctionService, apiService);
  const eventLoggingService = new EventLoggingService(storageService, apiService, userService, cipherService);
  
@@ -56,7 +71,7 @@ index 5560c476..a9b954a8 100644
              this.ngZone.run(() => {
                  this.u2fListening = false;
 diff --git a/src/scss/styles.scss b/src/scss/styles.scss
-index 2e1dbec9..9f01a7b9 100644
+index 80951953..5c784175 100644
 --- a/src/scss/styles.scss
 +++ b/src/scss/styles.scss
 @@ -1,5 +1,31 @@
