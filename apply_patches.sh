@@ -16,4 +16,6 @@ fi
 
 echo "Using patch: $PATCH_NAME"
 git apply "../patches/$PATCH_NAME"
+cd ./jslib
+git apply "/jslib_patches/jslib_email.patch"
 echo "Patching successful!"

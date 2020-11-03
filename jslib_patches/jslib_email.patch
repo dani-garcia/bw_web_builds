@@ -1,0 +1,33 @@
+From 5eae5064203facf9cb8752a41eedb100394db0b8 Mon Sep 17 00:00:00 2001
+From: groot <grootbucket@protonmail.com>
+Date: Thu, 29 Oct 2020 12:12:53 +0000
+Subject: [PATCH] Fix
+
+---
+ src/angular/components/login.component.ts | 10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
+
+diff --git a/src/angular/components/login.component.ts b/src/angular/components/login.component.ts
+index 2556ed4..8132acc 100644
+--- a/src/angular/components/login.component.ts
++++ b/src/angular/components/login.component.ts
+@@ -69,11 +69,11 @@ export class LoginComponent implements OnInit {
+                 this.i18nService.t('emailRequired'));
+             return;
+         }
+-        if (this.email.indexOf('@') === -1) {
+-            this.platformUtilsService.showToast('error', this.i18nService.t('errorOccurred'),
+-                this.i18nService.t('invalidEmail'));
+-            return;
+-        }
++        // if (this.email.indexOf('@') === -1) {
++        //     this.platformUtilsService.showToast('error', this.i18nService.t('errorOccurred'),
++        //         this.i18nService.t('invalidEmail'));
++        //     return;
++        // }
+         if (this.masterPassword == null || this.masterPassword === '') {
+             this.platformUtilsService.showToast('error', this.i18nService.t('errorOccurred'),
+                 this.i18nService.t('masterPassRequired'));
+-- 
+2.24.1.windows.2
+

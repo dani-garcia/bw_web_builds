@@ -1,3 +1,187 @@
+From f79c3ec71a486107d02c740fa9729cd9550919ec Mon Sep 17 00:00:00 2001
+From: groot <grootbucket@protonmail.com>
+Date: Thu, 29 Oct 2020 12:37:04 +0000
+Subject: [PATCH] Bitwarden_RS and Non-Email Username Patches
+
+---
+ jslib                                        |   2 +-
+ rs_patch.patch                               | 127 +++++++++++++++++++
+ src/app/accounts/login.component.html        |   2 +-
+ src/app/accounts/login.component.ts          |   2 +-
+ src/app/app.component.ts                     |   4 +
+ src/app/services/services.module.ts          |  30 +++--
+ src/app/settings/two-factor-u2f.component.ts |   1 +
+ src/scss/styles.scss                         |  29 +++++
+ webpack.config.js                            |   1 +
+ 9 files changed, 184 insertions(+), 14 deletions(-)
+ create mode 100644 rs_patch.patch
+
+diff --git a/jslib b/jslib
+index 5e0a2d1d..5eae5064 160000
+--- a/jslib
++++ b/jslib
+@@ -1 +1 @@
+-Subproject commit 5e0a2d1d998b5d36b093f3eff032453421680a41
++Subproject commit 5eae5064203facf9cb8752a41eedb100394db0b8
+diff --git a/rs_patch.patch b/rs_patch.patch
+new file mode 100644
+index 00000000..3d602354
+--- /dev/null
++++ b/rs_patch.patch
+@@ -0,0 +1,127 @@
++diff --git a/src/app/app.component.ts b/src/app/app.component.ts
++index fabd9294..2f0d88ad 100644
++--- a/src/app/app.component.ts
+++++ b/src/app/app.component.ts
++@@ -140,6 +140,10 @@ export class AppComponent implements OnDestroy, OnInit {
++                         }
++                         break;
++                     case 'showToast':
+++                        if (typeof message.text === "string" && (message.text.indexOf("this.subtle") != -1 || message.text.indexOf("importKey") != -1)) {
+++                            message.title="This browser requires HTTPS to use the web vault";
+++                            message.text="Check the bitwarden_rs wiki for details on how to enable it";
+++                        }
++                         this.showToast(message);
++                         break;
++                     case 'analyticsEventTrack':
++diff --git a/src/app/services/services.module.ts b/src/app/services/services.module.ts
++index d5892f0f..50547d1b 100644
++--- a/src/app/services/services.module.ts
+++++ b/src/app/services/services.module.ts
++@@ -127,24 +127,32 @@ const environmentService = new EnvironmentService(apiService, storageService, no
++ const auditService = new AuditService(cryptoFunctionService, apiService);
++ const eventLoggingService = new EventLoggingService(storageService, apiService, userService, cipherService);
++ 
++-const analytics = new Analytics(window, () => platformUtilsService.isDev() || platformUtilsService.isSelfHost(),
+++const analytics = new Analytics(window, () => platformUtilsService.isDev() || platformUtilsService.isSelfHost() || true,
++     platformUtilsService, storageService, appIdService);
++ containerService.attachToWindow(window);
++ 
++ export function initFactory(): Function {
+++    function getBaseUrl() {
+++        // If the base URL is `https://bitwarden.example.com/base/path/`,
+++        // `window.location.href` should have one of the following forms:
+++        //
+++        // - `https://bitwarden.example.com/base/path/`
+++        // - `https://bitwarden.example.com/base/path/#/some/route[?queryParam=...]`
+++        //
+++        // We want to get to just `https://bitwarden.example.com/base/path`.
+++        let baseUrl = window.location.href;
+++        baseUrl = baseUrl.replace(/#.*/, '');  // Strip off `#` and everything after.
+++        baseUrl = baseUrl.replace(/\/+$/, ''); // Trim any trailing `/` chars.
+++        return baseUrl;
+++    }
++     return async () => {
++         await (storageService as HtmlStorageService).init();
++-        const isDev = platformUtilsService.isDev();
++-        if (!isDev && platformUtilsService.isSelfHost()) {
++-            environmentService.baseUrl = window.location.origin;
++-        } else {
++-            environmentService.notificationsUrl = isDev ? 'http://localhost:61840' :
++-                'https://notifications.bitwarden.com'; // window.location.origin + '/notifications';
++-            environmentService.enterpriseUrl = isDev ? 'http://localhost:52313' :
++-                'https://portal.bitwarden.com'; // window.location.origin + '/portal';
++-        }
+++        const isDev = false;
+++        environmentService.baseUrl = getBaseUrl();
+++        environmentService.notificationsUrl = environmentService.baseUrl + '/notifications';
+++        environmentService.enterpriseUrl = environmentService.baseUrl + '/portal';
++         apiService.setUrls({
++-            base: isDev ? null : window.location.origin,
+++            base: isDev ? null : environmentService.baseUrl,
++             api: isDev ? 'http://localhost:4000' : null,
++             identity: isDev ? 'http://localhost:33656' : null,
++             events: isDev ? 'http://localhost:46273' : null,
++diff --git a/src/app/settings/two-factor-u2f.component.ts b/src/app/settings/two-factor-u2f.component.ts
++index 5560c476..a9b954a8 100644
++--- a/src/app/settings/two-factor-u2f.component.ts
+++++ b/src/app/settings/two-factor-u2f.component.ts
++@@ -128,6 +128,7 @@ export class TwoFactorU2fComponent extends TwoFactorBaseComponent implements OnI
++         (window as any).u2f.register(u2fChallenge.appId, [{
++             version: u2fChallenge.version,
++             challenge: u2fChallenge.challenge,
+++            attestation: 'direct',
++         }], [], (data: any) => {
++             this.ngZone.run(() => {
++                 this.u2fListening = false;
++diff --git a/src/scss/styles.scss b/src/scss/styles.scss
++index 676e275f..7aec40ad 100644
++--- a/src/scss/styles.scss
+++++ b/src/scss/styles.scss
++@@ -1,5 +1,34 @@
++ @import "../css/webfonts.css";
++ 
+++/**** START Bitwarden_RS CHANGES ****/
+++/* This combines all selectors extending it into one */
+++%bwrs-hide { display: none !important; }
+++
+++/* This allows searching for the combined style in the browsers dev-tools (look into the head tag) */
+++#bwrs-hide, head { @extend %bwrs-hide; }
+++
+++/* Hide any link pointing to billing */
+++a[href$="/settings/billing"] { @extend %bwrs-hide; }
+++
+++/* Hide any link pointing to subscriptions */
+++a[href$="/settings/subscription"] { @extend %bwrs-hide; }
+++
+++/* Hide the `Enterprise Single Sign-On` button on the login page */
+++a[href$="/sso"] { @extend %bwrs-hide; }
+++
+++/* Hide Two-Factor menu in Organization settings */
+++app-org-settings a[href$="/settings/two-factor"] { @extend %bwrs-hide; }
+++
+++/* Hide organization plans */
+++app-organization-plans > form > div.form-check { @extend %bwrs-hide; }
+++app-organization-plans > form > h2.mt-5 { @extend %bwrs-hide; }
+++
+++/* Hide Tax Info and Form in Organization settings */
+++app-org-account > div.secondary-header:nth-child(3) { @extend %bwrs-hide; }
+++app-org-account > div.secondary-header:nth-child(3) + p { @extend %bwrs-hide; }
+++app-org-account > div.secondary-header:nth-child(3) + p + form { @extend %bwrs-hide; }
+++/**** END Bitwarden_RS CHANGES ****/
+++
++ $primary: #175DDC;
++ $primary-accent: #1252A3;
++ $secondary: #ced4da;
++diff --git a/webpack.config.js b/webpack.config.js
++index 5f00785a..a3cd89bd 100644
++--- a/webpack.config.js
+++++ b/webpack.config.js
++@@ -176,6 +176,7 @@ const config = {
++         },
++         minimizer: [
++             new TerserPlugin({
+++                sourceMap: true,
++                 terserOptions: {
++                     safari10: true,
++                 },
++
+diff --git a/src/app/accounts/login.component.html b/src/app/accounts/login.component.html
+index c22d76f5..bf40a84c 100644
+--- a/src/app/accounts/login.component.html
++++ b/src/app/accounts/login.component.html
+@@ -6,7 +6,7 @@
+             <div class="card d-block">
+                 <div class="card-body">
+                     <div class="form-group">
+-                        <label for="email">{{'emailAddress' | i18n}}</label>
++                        <label for="email">LDAP Username</label>
+                         <input id="email" class="form-control" type="text" name="Email" [(ngModel)]="email" required
+                             inputmode="email" appInputVerbatim="false">
+                     </div>
+diff --git a/src/app/accounts/login.component.ts b/src/app/accounts/login.component.ts
+index 7a3a362b..3e4d5114 100644
+--- a/src/app/accounts/login.component.ts
++++ b/src/app/accounts/login.component.ts
+@@ -35,7 +35,7 @@ export class LoginComponent extends BaseLoginComponent {
+ 
+     async ngOnInit() {
+         const queryParamsSub = this.route.queryParams.subscribe(async (qParams) => {
+-            if (qParams.email != null && qParams.email.indexOf('@') > -1) {
++            if (qParams.email != null) {
+                 this.email = qParams.email;
+             }
+             if (qParams.premium != null) {
 diff --git a/src/app/app.component.ts b/src/app/app.component.ts
 index fabd9294..2f0d88ad 100644
 --- a/src/app/app.component.ts
@@ -124,3 +308,6 @@ index 5f00785a..a3cd89bd 100644
                  terserOptions: {
                      safari10: true,
                  },
+-- 
+2.24.1.windows.2
+

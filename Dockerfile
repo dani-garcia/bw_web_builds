@@ -31,12 +31,15 @@ WORKDIR /vault
 RUN git checkout "$VAULT_VERSION"
 
 COPY --chown=node:node patches /patches
+COPY --chown=node:node jslib_patches /jslib_patches
 COPY --chown=node:node apply_patches.sh /apply_patches.sh
+
+RUN npm install
 
 RUN bash /apply_patches.sh
 
 # Build
-RUN npm install
+#RUN npm install
 RUN npm audit fix
 RUN npm run dist
 
