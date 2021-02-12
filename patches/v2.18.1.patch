@@ -93,9 +93,6 @@ index 55b3c92c..c48e2baf 100644
 +/* Hide any link pointing to subscriptions */
 +a[href$="/settings/subscription"] { @extend %bwrs-hide; }
 +
-+/* Hide any link pointing to emergency access */
-+a[href$="/settings/emergency-access"] { @extend %bwrs-hide; }
-+
 +/* Hide the `Enterprise Single Sign-On` button on the login page */
 +a[href$="/sso"] { @extend %bwrs-hide; }
 +
