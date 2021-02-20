@@ -25,7 +25,7 @@ USER node
 # Using https://github.com/bitwarden/web/releases/tag/v2.18.1
 ARG VAULT_VERSION=9326a9a4a723d7e57943776d7b356132f40aeec2
 
-RUN git clone https://github.com/bitwarden/web.git /vault
+RUN git clone --recurse-submodules https://github.com/bitwarden/web.git /vault
 WORKDIR /vault
 
 RUN git checkout "$VAULT_VERSION"

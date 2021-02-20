@@ -22,7 +22,7 @@ mkdir -p "$OUTPUT_FOLDER"
 
 # If this is the first time, clone the project
 if [ ! -d "$VAULT_FOLDER" ]; then
-    git clone --recursive https://github.com/bitwarden/web.git "$VAULT_FOLDER"
+    git clone --recurse-submodules https://github.com/bitwarden/web.git "$VAULT_FOLDER"
 fi
 
 cd $VAULT_FOLDER
