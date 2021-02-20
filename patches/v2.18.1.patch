@@ -1,12 +1,30 @@
+Submodule jslib contains modified content
+diff --git a/jslib/src/angular/components/register.component.ts b/jslib/src/angular/components/register.component.ts
+index 6149f83..005d528 100644
+--- a/jslib/src/angular/components/register.component.ts
++++ b/jslib/src/angular/components/register.component.ts
+@@ -69,6 +69,12 @@ export class RegisterComponent {
+     }
+ 
+     async submit() {
++        if (typeof crypto.subtle === 'undefined') {
++            this.platformUtilsService.showToast('error', "This browser requires HTTPS to use the web vault",
++                "Check the bitwarden_rs wiki for details on how to enable it");
++            return;
++        }
++
+         if (!this.acceptPolicies && this.showTerms) {
+             this.platformUtilsService.showToast('error', this.i18nService.t('errorOccurred'),
+                 this.i18nService.t('acceptPoliciesError'));
 diff --git a/src/app/app.component.ts b/src/app/app.component.ts
-index 51853633..c9b3d48a 100644
+index 51853633..f589e498 100644
 --- a/src/app/app.component.ts
 +++ b/src/app/app.component.ts
 @@ -140,6 +140,10 @@ export class AppComponent implements OnDestroy, OnInit {
                          }
                          break;
                      case 'showToast':
-+                        if (typeof message.text === "string" && (message.text.indexOf("this.subtle") != -1 || message.text.indexOf("importKey") != -1)) {
++                        if (typeof message.text === "string" && typeof crypto.subtle === 'undefined') {
 +                            message.title="This browser requires HTTPS to use the web vault";
 +                            message.text="Check the bitwarden_rs wiki for details on how to enable it";
 +                        }
@@ -134,15 +152,3 @@ index 55b3c92c..c48e2baf 100644
  $primary: #175DDC;
  $primary-accent: #1252A3;
  $secondary: #ced4da;
-diff --git a/webpack.config.js b/webpack.config.js
-index b6da3558..eef05772 100644
---- a/webpack.config.js
-+++ b/webpack.config.js
-@@ -178,6 +178,7 @@ const config = {
-         },
-         minimizer: [
-             new TerserPlugin({
-+                sourceMap: true,
-                 terserOptions: {
-                     safari10: true,
-                 },
