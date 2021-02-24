@@ -22,8 +22,8 @@ USER node
 # Can be a tag, release, but prefer a commit hash because it's not changeable
 # https://github.com/bitwarden/web/commit/$VAULT_VERSION
 #
-# Using https://github.com/bitwarden/web/releases/tag/v2.18.1
-ARG VAULT_VERSION=9326a9a4a723d7e57943776d7b356132f40aeec2
+# Using https://github.com/bitwarden/web/releases/tag/v2.18.2
+ARG VAULT_VERSION=2499b18ffe74aa25479747fcfa24118c20479b7f
 
 RUN git clone --recurse-submodules https://github.com/bitwarden/web.git /vault
 WORKDIR /vault
