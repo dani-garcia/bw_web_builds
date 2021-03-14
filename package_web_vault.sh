@@ -39,7 +39,7 @@ git checkout "$VAULT_VERSION"
 git submodule update --recursive --init
 
 ## How to create patches
-# git --no-pager diff --no-color --minimal > changes.patch
+# git --no-pager diff --submodule=diff --no-color --minimal > changes.patch
 ## How to apply patches
 # git apply changes.patch
 . ../apply_patches.sh

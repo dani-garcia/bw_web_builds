@@ -1,0 +1,156 @@
+Submodule jslib contains modified content
+diff --git a/jslib/src/angular/components/register.component.ts b/jslib/src/angular/components/register.component.ts
+index 6149f83..005d528 100644
+--- a/jslib/src/angular/components/register.component.ts
++++ b/jslib/src/angular/components/register.component.ts
+@@ -69,6 +69,12 @@ export class RegisterComponent {
+     }
+ 
+     async submit() {
++        if (typeof crypto.subtle === 'undefined') {
++            this.platformUtilsService.showToast('error', "This browser requires HTTPS to use the web vault",
++                "Check the bitwarden_rs wiki for details on how to enable it");
++            return;
++        }
++
+         if (!this.acceptPolicies && this.showTerms) {
+             this.platformUtilsService.showToast('error', this.i18nService.t('errorOccurred'),
+                 this.i18nService.t('acceptPoliciesError'));
+diff --git a/src/app/app.component.ts b/src/app/app.component.ts
+index 9c5b6b5d..287338d2 100644
+--- a/src/app/app.component.ts
++++ b/src/app/app.component.ts
+@@ -140,6 +140,10 @@ export class AppComponent implements OnDestroy, OnInit {
+                         }
+                         break;
+                     case 'showToast':
++                        if (typeof message.text === "string" && typeof crypto.subtle === 'undefined') {
++                            message.title="This browser requires HTTPS to use the web vault";
++                            message.text="Check the bitwarden_rs wiki for details on how to enable it";
++                        }
+                         this.showToast(message);
+                         break;
+                     case 'analyticsEventTrack':
+diff --git a/src/app/services/services.module.ts b/src/app/services/services.module.ts
+index e5c48fe9..17ee65c9 100644
+--- a/src/app/services/services.module.ts
++++ b/src/app/services/services.module.ts
+@@ -136,25 +136,33 @@ const environmentService = new EnvironmentService(apiService, storageService, no
+ const auditService = new AuditService(cryptoFunctionService, apiService);
+ const eventLoggingService = new EventLoggingService(storageService, apiService, userService, cipherService);
+ 
+-const analytics = new Analytics(window, () => platformUtilsService.isDev() || platformUtilsService.isSelfHost(),
++const analytics = new Analytics(window, () => platformUtilsService.isDev() || platformUtilsService.isSelfHost() || true,
+     platformUtilsService, storageService, appIdService);
+ containerService.attachToWindow(window);
+ 
+ export function initFactory(): Function {
++    function getBaseUrl() {
++        // If the base URL is `https://bitwarden.example.com/base/path/`,
++        // `window.location.href` should have one of the following forms:
++        //
++        // - `https://bitwarden.example.com/base/path/`
++        // - `https://bitwarden.example.com/base/path/#/some/route[?queryParam=...]`
++        //
++        // We want to get to just `https://bitwarden.example.com/base/path`.
++        let baseUrl = window.location.href;
++        baseUrl = baseUrl.replace(/#.*/, '');  // Strip off `#` and everything after.
++        baseUrl = baseUrl.replace(/\/+$/, ''); // Trim any trailing `/` chars.
++        return baseUrl;
++    }
+     return async () => {
+         await (storageService as HtmlStorageService).init();
+-        const isDev = platformUtilsService.isDev();
+-        if (!isDev && platformUtilsService.isSelfHost()) {
+-            environmentService.baseUrl = window.location.origin;
+-        } else {
+-            environmentService.webVaultUrl = isDev ? 'https://localhost:8080' : null;
+-            environmentService.notificationsUrl = isDev ? 'http://localhost:61840' :
+-                'https://notifications.bitwarden.com'; // window.location.origin + '/notifications';
+-            environmentService.enterpriseUrl = isDev ? 'http://localhost:52313' :
+-                'https://portal.bitwarden.com'; // window.location.origin + '/portal';
+-        }
++        const isDev = false;
++        environmentService.baseUrl = getBaseUrl();
++        environmentService.webVaultUrl = environmentService.baseUrl;
++        environmentService.notificationsUrl = environmentService.baseUrl + '/notifications';
++        environmentService.enterpriseUrl = environmentService.baseUrl + '/portal';
+         apiService.setUrls({
+-            base: isDev ? null : window.location.origin,
++            base: isDev ? null : environmentService.baseUrl,
+             api: isDev ? 'http://localhost:4000' : null,
+             identity: isDev ? 'http://localhost:33656' : null,
+             events: isDev ? 'http://localhost:46273' : null,
+diff --git a/src/app/settings/two-factor-u2f.component.ts b/src/app/settings/two-factor-u2f.component.ts
+index cbcc6f58..9617dc22 100644
+--- a/src/app/settings/two-factor-u2f.component.ts
++++ b/src/app/settings/two-factor-u2f.component.ts
+@@ -128,6 +128,7 @@ export class TwoFactorU2fComponent extends TwoFactorBaseComponent implements OnI
+         (window as any).u2f.register(u2fChallenge.appId, [{
+             version: u2fChallenge.version,
+             challenge: u2fChallenge.challenge,
++            attestation: 'direct',
+         }], [], (data: any) => {
+             this.ngZone.run(() => {
+                 this.u2fListening = false;
+diff --git a/src/scss/styles.scss b/src/scss/styles.scss
+index be32ef9e..1cbb8682 100644
+--- a/src/scss/styles.scss
++++ b/src/scss/styles.scss
+@@ -1,5 +1,56 @@
+ @import "../css/webfonts.css";
+ 
++/**** START Bitwarden_RS CHANGES ****/
++/* This combines all selectors extending it into one */
++%bwrs-hide { display: none !important; }
++
++/* This allows searching for the combined style in the browsers dev-tools (look into the head tag) */
++#bwrs-hide, head { @extend %bwrs-hide; }
++
++/* Hide any link pointing to billing */
++a[href$="/settings/billing"] { @extend %bwrs-hide; }
++
++/* Hide any link pointing to subscriptions */
++a[href$="/settings/subscription"] { @extend %bwrs-hide; }
++
++/* Hide any link pointing to emergency access */
++a[href$="/settings/emergency-access"] { @extend %bwrs-hide; }
++
++/* Hide the `Enterprise Single Sign-On` button on the login page */
++a[href$="/sso"] { @extend %bwrs-hide; }
++
++/* Hide Two-Factor menu in Organization settings */
++app-org-settings a[href$="/settings/two-factor"] { @extend %bwrs-hide; }
++
++/* Hide organization plans */
++app-organization-plans > form > div.form-check { @extend %bwrs-hide; }
++app-organization-plans > form > h2.mt-5 { @extend %bwrs-hide; }
++
++/* Hide the `API Key` section under `My Account` */
++app-account > div:nth-child(9),
++app-account > p,
++app-account > button:nth-child(11),
++app-account > button:nth-child(12) {
++    @extend %bwrs-hide;
++}
++
++/* Hide the radio button and label for the `Custom` org user type */
++#userTypeCustom, label[for^=userTypeCustom] {
++    @extend %bwrs-hide;
++}
++
++/* Hide the warning that policy config is moving to Business Portal */
++app-org-policies > app-callout { @extend %bwrs-hide; }
++
++/* Hide `Single Organization` policy */
++app-org-policies > table > tbody > tr:nth-child(4) { @extend %bwrs-hide; }
++
++/* Hide Tax Info and Form in Organization settings */
++app-org-account > div.secondary-header:nth-child(3) { @extend %bwrs-hide; }
++app-org-account > div.secondary-header:nth-child(3) + p { @extend %bwrs-hide; }
++app-org-account > div.secondary-header:nth-child(3) + p + form { @extend %bwrs-hide; }
++/**** END Bitwarden_RS CHANGES ****/
++
+ $primary: #175DDC;
+ $primary-accent: #1252A3;
+ $secondary: #ced4da;
