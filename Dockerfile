@@ -12,7 +12,7 @@
 #    docker cp $image_id:/bw_web_vault.tar.gz .
 #    docker rm $image_id
 
-FROM node:13.8.0-stretch as build
+FROM node:14.16.0-buster as build
 
 # Prepare the folder to enable non-root, otherwise npm will refuse to run the postinstall
 RUN mkdir /vault
@@ -39,6 +39,10 @@ RUN bash /apply_patches.sh
 RUN npm install
 RUN npm audit fix
 RUN npm run dist
+
+RUN printf '{"version":"%s"}' \
+      $(git -c 'versionsort.suffix=-' ls-remote --tags --sort='v:refname' https://github.com/dani-garcia/bw_web_builds.git 'v*' | tail -n1 | sed -E 's#.*?refs/tags/v##') \
+      > build/bwrs-version.json
 
 # Delete debugging map files, optional
 # RUN find build -name "*.map" -delete
