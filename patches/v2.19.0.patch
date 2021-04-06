@@ -31,6 +31,22 @@ index 9c5b6b5d..287338d2 100644
                          this.showToast(message);
                          break;
                      case 'analyticsEventTrack':
+diff --git a/src/app/send/access.component.html b/src/app/send/access.component.html
+index 0f0aa7c3..0a312044 100644
+--- a/src/app/send/access.component.html
++++ b/src/app/send/access.component.html
+@@ -74,10 +74,7 @@
+         <div class="col-12 text-center mt-5 text-muted">
+             <p class="mb-0">{{'sendAccessTaglineProductDesc' | i18n}}<br>
+                 {{'sendAccessTaglineLearnMore' | i18n}} <a
+-                    href="https://www.bitwarden.com/products/send?source=web-vault" target="_blank">Bitwarden Send</a>
+-                {{'sendAccessTaglineOr' | i18n}} <a
+-                    href="https://vault.bitwarden.com/#/register" target="_blank">{{'sendAccessTaglineSignUp' | i18n}}</a>
+-                {{'sendAccessTaglineTryToday' | i18n}}
++                    href="https://www.bitwarden.com/products/send/" target="_blank">Bitwarden Send</a>.
+             </p>
+         </div>
+     </div>
 diff --git a/src/app/services/services.module.ts b/src/app/services/services.module.ts
 index e5c48fe9..17ee65c9 100644
 --- a/src/app/services/services.module.ts
@@ -94,10 +110,10 @@ index cbcc6f58..9617dc22 100644
              this.ngZone.run(() => {
                  this.u2fListening = false;
 diff --git a/src/scss/styles.scss b/src/scss/styles.scss
-index be32ef9e..1cbb8682 100644
+index be32ef9e..1408ae03 100644
 --- a/src/scss/styles.scss
 +++ b/src/scss/styles.scss
-@@ -1,5 +1,56 @@
+@@ -1,5 +1,59 @@
  @import "../css/webfonts.css";
  
 +/**** START Bitwarden_RS CHANGES ****/
@@ -118,6 +134,9 @@ index be32ef9e..1cbb8682 100644
 +
 +/* Hide the `Enterprise Single Sign-On` button on the login page */
 +a[href$="/sso"] { @extend %bwrs-hide; }
++
++/* Hide the info box that advertises Bitwarden Send */
++app-send-info.d-block { @extend %bwrs-hide; }
 +
 +/* Hide Two-Factor menu in Organization settings */
 +app-org-settings a[href$="/settings/two-factor"] { @extend %bwrs-hide; }
