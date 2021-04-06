@@ -46,10 +46,16 @@ git submodule update --recursive --init
 
 # Build
 npm install
+npm audit fix
 npm run dist
 
 # Delete debugging map files, optional
 #find build -name "*.map" -delete
+
+# Create bwrs-version.json with the latest tag from the remote repo.
+printf '{"version":"%s"}' \
+      $(git -c 'versionsort.suffix=-' ls-remote --tags --sort='v:refname' https://github.com/dani-garcia/bw_web_builds.git 'v*' | tail -n1 | sed -E 's#.*?refs/tags/v##') \
+      > build/bwrs-version.json
 
 # Prepare the final archives
 mv build web-vault
