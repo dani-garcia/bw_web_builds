@@ -16,6 +16,23 @@ index 6149f83..005d528 100644
          if (!this.acceptPolicies && this.showTerms) {
              this.platformUtilsService.showToast('error', this.i18nService.t('errorOccurred'),
                  this.i18nService.t('acceptPoliciesError'));
+diff --git a/src/404.html b/src/404.html
+index dae3951b..b4b3e39b 100644
+--- a/src/404.html
++++ b/src/404.html
+@@ -45,10 +45,10 @@
+                 </a>
+             </p>
+             <p>You can <a href="/">return to the web vault</a>, check our <a href="https://status.bitwarden.com/">status page</a>
+-                or <a href="https://bitwarden.com/contact/">contact us</a>.</p>
++                or <a href="https://github.com/dani-garcia/vaultwarden">contact us</a>.</p>
+         </div>
+         <div class="container footer text-muted content">
+-            © Copyright 2021 Bitwarden, Inc.
++            © Copyright 2021 Bitwarden, Inc. (Powered by Vaultwarden)
+         </div>
+     </body>
+ </html>
 diff --git a/src/app/app.component.ts b/src/app/app.component.ts
 index 9c5b6b5d..287338d2 100644
 --- a/src/app/app.component.ts
@@ -31,6 +48,56 @@ index 9c5b6b5d..287338d2 100644
                          this.showToast(message);
                          break;
                      case 'analyticsEventTrack':
+diff --git a/src/app/layouts/footer.component.html b/src/app/layouts/footer.component.html
+index b001b9e3..c1bd2ac8 100644
+--- a/src/app/layouts/footer.component.html
++++ b/src/app/layouts/footer.component.html
+@@ -1,7 +1,7 @@
+ <div class="container footer text-muted">
+     <div class="row">
+         <div class="col">
+-            &copy; {{year}}, Bitwarden Inc.
++            &copy; {{year}}, Bitwarden Inc. (Powered by Vaultwarden)
+         </div>
+         <div class="col text-center"></div>
+         <div class="col text-right">
+diff --git a/src/app/layouts/frontend-layout.component.html b/src/app/layouts/frontend-layout.component.html
+index 4c2c4ca1..dc990b22 100644
+--- a/src/app/layouts/frontend-layout.component.html
++++ b/src/app/layouts/frontend-layout.component.html
+@@ -1,5 +1,5 @@
+ <router-outlet></router-outlet>
+ <div class="container my-5 text-muted text-center">
+-    &copy; {{year}}, Bitwarden Inc.
++    &copy; {{year}}, Bitwarden Inc. (Powered by Vaultwarden)
+     <br> {{'versionNumber' | i18n : version}}
+ </div>
+diff --git a/src/app/layouts/navbar.component.html b/src/app/layouts/navbar.component.html
+index b28897c9..524764c6 100644
+--- a/src/app/layouts/navbar.component.html
++++ b/src/app/layouts/navbar.component.html
+@@ -38,7 +38,7 @@
+                         <i class="fa fa-fw fa-user" aria-hidden="true"></i>
+                         {{'myAccount' | i18n}}
+                     </a>
+-                    <a class="dropdown-item" href="https://help.bitwarden.com" target="_blank" rel="noopener">
++                    <a class="dropdown-item" href="https://github.com/dani-garcia/vaultwarden" target="_blank" rel="noopener">
+                         <i class="fa fa-fw fa-question-circle" aria-hidden="true"></i>
+                         {{'getHelp' | i18n}}
+                     </a>
+diff --git a/src/app/organizations/settings/organization-subscription.component.ts b/src/app/organizations/settings/organization-subscription.component.ts
+index e5caf468..fd7a4b1f 100644
+--- a/src/app/organizations/settings/organization-subscription.component.ts
++++ b/src/app/organizations/settings/organization-subscription.component.ts
+@@ -109,7 +109,7 @@ export class OrganizationSubscriptionComponent implements OnInit {
+         const contactSupport = await this.platformUtilsService.showDialog(this.i18nService.t('changeBillingPlanDesc'),
+             this.i18nService.t('changeBillingPlan'), this.i18nService.t('contactSupport'), this.i18nService.t('close'));
+         if (contactSupport) {
+-            this.platformUtilsService.launchUri('https://bitwarden.com/contact');
++            this.platformUtilsService.launchUri('https://github.com/dani-garcia/vaultwarden');
+         }
+     }
+ 
 diff --git a/src/app/send/access.component.html b/src/app/send/access.component.html
 index 0f0aa7c3..0a312044 100644
 --- a/src/app/send/access.component.html
