@@ -25,10 +25,11 @@ USER node
 # Using https://github.com/bitwarden/web/releases/tag/v2.19.0
 ARG VAULT_VERSION=9d42a565dbef29c5c361dbe5b3db88d765d65a98
 
-RUN git clone --recurse-submodules https://github.com/bitwarden/web.git /vault
+RUN git clone https://github.com/bitwarden/web.git /vault
 WORKDIR /vault
 
 RUN git checkout "$VAULT_VERSION"
+RUN git submodule update --recursive --init
 
 COPY --chown=node:node patches /patches
 COPY --chown=node:node apply_patches.sh /apply_patches.sh
