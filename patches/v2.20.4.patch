@@ -1,9 +1,26 @@
 Submodule jslib contains modified content
 diff --git a/jslib/src/angular/components/register.component.ts b/jslib/src/angular/components/register.component.ts
-index ae45add..e6a5590 100644
+index ae45add..a2ea12b 100644
 --- a/jslib/src/angular/components/register.component.ts
 +++ b/jslib/src/angular/components/register.component.ts
-@@ -69,6 +69,12 @@ export class RegisterComponent {
+@@ -24,7 +24,7 @@ export class RegisterComponent {
+     formPromise: Promise<any>;
+     masterPasswordScore: number;
+     referenceData: ReferenceEventRequest;
+-    showTerms = true;
++    showTerms = false;
+     acceptPolicies: boolean = false;
+ 
+     protected successRoute = 'login';
+@@ -35,7 +35,6 @@ export class RegisterComponent {
+         protected apiService: ApiService, protected stateService: StateService,
+         protected platformUtilsService: PlatformUtilsService,
+         protected passwordGenerationService: PasswordGenerationService) {
+-        this.showTerms = !platformUtilsService.isSelfHost();
+     }
+ 
+     get masterPasswordScoreWidth() {
+@@ -69,6 +68,12 @@ export class RegisterComponent {
      }
  
      async submit() {
