@@ -1,0 +1,268 @@
+diff --git a/jslib/src/angular/components/register.component.ts b/jslib/src/angular/components/register.component.ts
+index ae45add..a2ea12b 100644
+--- a/jslib/angular/src/components/register.component.ts
++++ b/jslib/angular/src/components/register.component.ts
+@@ -27,7 +27,7 @@ export class RegisterComponent {
+     formPromise: Promise<any>;
+     masterPasswordScore: number;
+     referenceData: ReferenceEventRequest;
+-    showTerms = true;
++    showTerms = false;
+     acceptPolicies: boolean = false;
+ 
+     protected successRoute = 'login';
+@@ -38,7 +38,6 @@ export class RegisterComponent {
+         protected apiService: ApiService, protected stateService: StateService,
+         protected platformUtilsService: PlatformUtilsService,
+         protected passwordGenerationService: PasswordGenerationService) {
+-        this.showTerms = !platformUtilsService.isSelfHost();
+     }
+ 
+     get masterPasswordScoreWidth() {
+@@ -69,6 +68,12 @@ export class RegisterComponent {
+     }
+ 
+     async submit() {
++        if (typeof crypto.subtle === 'undefined') {
++            this.platformUtilsService.showToast('error', "This browser requires HTTPS to use the web vault",
++                "Check the Vaultwarden wiki for details on how to enable it");
++            return;
++        }
++
+         if (!this.acceptPolicies && this.showTerms) {
+             this.platformUtilsService.showToast('error', this.i18nService.t('errorOccurred'),
+                 this.i18nService.t('acceptPoliciesError'));
+diff --git a/src/404.html b/src/404.html
+index eba36375..cb8883ec 100644
+--- a/src/404.html
++++ b/src/404.html
+@@ -41,10 +41,10 @@
+                 </a>
+             </p>
+             <p>You can <a href="/">return to the web vault</a>, check our <a href="https://status.bitwarden.com/">status page</a>
+-                or <a href="https://bitwarden.com/contact/">contact us</a>.</p>
++                or <a href="https://github.com/dani-garcia/vaultwarden">contact us</a>.</p>
+         </div>
+         <div class="container footer text-muted content">
+-            © Copyright 2021 Bitwarden, Inc.
++            © Copyright 2021 Bitwarden, Inc. (Powered by Vaultwarden)
+         </div>
+     </body>
+ </html>
+diff --git a/src/app/app.component.ts b/src/app/app.component.ts
+index 9b11af23..05e34dd7 100644
+--- a/src/app/app.component.ts
++++ b/src/app/app.component.ts
+@@ -146,6 +146,10 @@ export class AppComponent implements OnDestroy, OnInit {
+                         }
+                         break;
+                     case 'showToast':
++                        if (typeof message.text === "string" && typeof crypto.subtle === 'undefined') {
++                            message.title="This browser requires HTTPS to use the web vault";
++                            message.text="Check the Vaultwarden wiki for details on how to enable it";
++                        }
+                         this.showToast(message);
+                         break;
+                     case 'setFullWidth':
+diff --git a/src/app/layouts/footer.component.html b/src/app/layouts/footer.component.html
+index b001b9e3..c1bd2ac8 100644
+--- a/src/app/layouts/footer.component.html
++++ b/src/app/layouts/footer.component.html
+@@ -1,7 +1,7 @@
+ <div class="container footer text-muted">
+     <div class="row">
+         <div class="col">
+-            &copy; {{year}}, Bitwarden Inc.
++            &copy; {{year}}, Bitwarden Inc. (Powered by Vaultwarden)
+         </div>
+         <div class="col text-center"></div>
+         <div class="col text-right">
+diff --git a/src/app/layouts/frontend-layout.component.html b/src/app/layouts/frontend-layout.component.html
+index 4c2c4ca1..dc990b22 100644
+--- a/src/app/layouts/frontend-layout.component.html
++++ b/src/app/layouts/frontend-layout.component.html
+@@ -1,5 +1,5 @@
+ <router-outlet></router-outlet>
+ <div class="container my-5 text-muted text-center">
+-    &copy; {{year}}, Bitwarden Inc.
++    &copy; {{year}}, Bitwarden Inc. (Powered by Vaultwarden)
+     <br> {{'versionNumber' | i18n : version}}
+ </div>
+diff --git a/src/app/layouts/navbar.component.html b/src/app/layouts/navbar.component.html
+index b28897c9..524764c6 100644
+--- a/src/app/layouts/navbar.component.html
++++ b/src/app/layouts/navbar.component.html
+@@ -38,7 +38,7 @@
+                         <i class="fa fa-fw fa-user" aria-hidden="true"></i>
+                         {{'myAccount' | i18n}}
+                     </a>
+-                    <a class="dropdown-item" href="https://help.bitwarden.com" target="_blank" rel="noopener">
++                    <a class="dropdown-item" href="https://github.com/dani-garcia/vaultwarden" target="_blank" rel="noopener">
+                         <i class="fa fa-fw fa-question-circle" aria-hidden="true"></i>
+                         {{'getHelp' | i18n}}
+                     </a>
+diff --git a/src/app/organizations/settings/organization-subscription.component.ts b/src/app/organizations/settings/organization-subscription.component.ts
+index d8c2e6cf..5e32a9c8 100644
+--- a/src/app/organizations/settings/organization-subscription.component.ts
++++ b/src/app/organizations/settings/organization-subscription.component.ts
+@@ -105,7 +105,7 @@ export class OrganizationSubscriptionComponent implements OnInit {
+         const contactSupport = await this.platformUtilsService.showDialog(this.i18nService.t('changeBillingPlanDesc'),
+             this.i18nService.t('changeBillingPlan'), this.i18nService.t('contactSupport'), this.i18nService.t('close'));
+         if (contactSupport) {
+-            this.platformUtilsService.launchUri('https://bitwarden.com/contact');
++            this.platformUtilsService.launchUri('https://github.com/dani-garcia/vaultwarden');
+         }
+     }
+ 
+diff --git a/src/app/send/access.component.html b/src/app/send/access.component.html
+index 84944a2b..b736bbe4 100644
+--- a/src/app/send/access.component.html
++++ b/src/app/send/access.component.html
+@@ -82,10 +82,7 @@
+         <div class="col-12 text-center mt-5 text-muted">
+             <p class="mb-0">{{'sendAccessTaglineProductDesc' | i18n}}<br>
+                 {{'sendAccessTaglineLearnMore' | i18n}} <a
+-                    href="https://www.bitwarden.com/products/send?source=web-vault" target="_blank">Bitwarden Send</a>
+-                {{'sendAccessTaglineOr' | i18n}} <a
+-                    href="https://vault.bitwarden.com/#/register" target="_blank">{{'sendAccessTaglineSignUp' | i18n}}</a>
+-                {{'sendAccessTaglineTryToday' | i18n}}
++                    href="https://www.bitwarden.com/products/send/" target="_blank">Bitwarden Send</a>.
+             </p>
+         </div>
+     </div>
+diff --git a/src/app/services/services.module.ts b/src/app/services/services.module.ts
+index 231edc51..6e5dc329 100644
+--- a/src/app/services/services.module.ts
++++ b/src/app/services/services.module.ts
+@@ -142,18 +142,25 @@ const passwordRepromptService = new PasswordRepromptService(i18nService, cryptoS
+ containerService.attachToWindow(window);
+ 
+ export function initFactory(): Function {
++    function getBaseUrl() {
++        // If the base URL is `https://bitwarden.example.com/base/path/`,
++        // `window.location.href` should have one of the following forms:
++        //
++        // - `https://bitwarden.example.com/base/path/`
++        // - `https://bitwarden.example.com/base/path/#/some/route[?queryParam=...]`
++        //
++        // We want to get to just `https://bitwarden.example.com/base/path`.
++        let baseUrl = window.location.href;
++        baseUrl = baseUrl.replace(/#.*/, '');  // Strip off `#` and everything after.
++        baseUrl = baseUrl.replace(/\/+$/, ''); // Trim any trailing `/` chars.
++        return baseUrl;
++    }
+     return async () => {
+         await (storageService as HtmlStorageService).init();
+ 
+-        if (process.env.ENV !== 'production' || platformUtilsService.isSelfHost()) {
+-            environmentService.baseUrl = window.location.origin;
+-        } else {
+-            environmentService.notificationsUrl = 'https://notifications.bitwarden.com';
+-            environmentService.enterpriseUrl = 'https://portal.bitwarden.com';
+-        }
+-
++        environmentService.baseUrl = getBaseUrl();
+         apiService.setUrls({
+-            base: window.location.origin,
++            base: environmentService.baseUrl,
+             api: null,
+             identity: null,
+             events: null,
+diff --git a/src/app/vault/vault.component.ts b/src/app/vault/vault.component.ts
+index 56f99588..6eaa158c 100644
+--- a/src/app/vault/vault.component.ts
++++ b/src/app/vault/vault.component.ts
+@@ -80,9 +80,7 @@ export class VaultComponent implements OnInit, OnDestroy {
+     async ngOnInit() {
+         this.showVerifyEmail = !(await this.tokenService.getEmailVerified());
+         this.showBrowserOutdated = window.navigator.userAgent.indexOf('MSIE') !== -1;
+-        this.trashCleanupWarning = this.i18nService.t(
+-            this.platformUtilsService.isSelfHost() ? 'trashCleanupWarningSelfHosted' : 'trashCleanupWarning'
+-        );
++        this.trashCleanupWarning = this.i18nService.t('trashCleanupWarningSelfHosted');
+ 
+         const queryParamsSub = this.route.queryParams.subscribe(async params => {
+             await this.syncService.fullSync(false);
+diff --git a/src/scss/styles.scss b/src/scss/styles.scss
+index 598fea83..f5ed4253 100644
+--- a/src/scss/styles.scss
++++ b/src/scss/styles.scss
+@@ -1,5 +1,59 @@
+ @import "../css/webfonts.css";
+ 
++/**** START Bitwarden_RS CHANGES ****/
++/* This combines all selectors extending it into one */
++%bwrs-hide { display: none !important; }
++
++/* This allows searching for the combined style in the browsers dev-tools (look into the head tag) */
++#bwrs-hide, head { @extend %bwrs-hide; }
++
++/* Hide any link pointing to billing */
++a[href$="/settings/billing"] { @extend %bwrs-hide; }
++
++/* Hide any link pointing to subscriptions */
++a[href$="/settings/subscription"] { @extend %bwrs-hide; }
++
++/* Hide any link pointing to emergency access */
++a[href$="/settings/emergency-access"] { @extend %bwrs-hide; }
++
++/* Hide the `Enterprise Single Sign-On` button on the login page */
++a[href$="/sso"] { @extend %bwrs-hide; }
++
++/* Hide the info box that advertises Bitwarden Send */
++app-send-info.d-block { @extend %bwrs-hide; }
++
++/* Hide Two-Factor menu in Organization settings */
++app-org-settings a[href$="/settings/two-factor"] { @extend %bwrs-hide; }
++
++/* Hide organization plans */
++app-organization-plans > form > div.form-check { @extend %bwrs-hide; }
++app-organization-plans > form > h2.mt-5 { @extend %bwrs-hide; }
++
++/* Hide the `API Key` section under `My Account` */
++app-account > div:nth-child(9),
++app-account > p,
++app-account > button:nth-child(11),
++app-account > button:nth-child(12) {
++    @extend %bwrs-hide;
++}
++
++/* Hide the radio button and label for the `Custom` org user type */
++#userTypeCustom, label[for^=userTypeCustom] {
++    @extend %bwrs-hide;
++}
++
++/* Hide the warning that policy config is moving to Business Portal */
++app-org-policies > app-callout { @extend %bwrs-hide; }
++
++/* Hide `Single Organization` policy */
++app-org-policies > table > tbody > tr:nth-child(4) { @extend %bwrs-hide; }
++
++/* Hide Tax Info and Form in Organization settings */
++app-org-account > div.secondary-header:nth-child(3) { @extend %bwrs-hide; }
++app-org-account > div.secondary-header:nth-child(3) + p { @extend %bwrs-hide; }
++app-org-account > div.secondary-header:nth-child(3) + p + form { @extend %bwrs-hide; }
++/**** END Bitwarden_RS CHANGES ****/
++
+ $primary: #175DDC;
+ $primary-accent: #1252A3;
+ $secondary: #ced4da;
+diff --git a/src/services/webPlatformUtils.service.ts b/src/services/webPlatformUtils.service.ts
+index e3aeea39..6e7ed1e0 100644
+--- a/src/services/webPlatformUtils.service.ts
++++ b/src/services/webPlatformUtils.service.ts
+@@ -249,11 +249,12 @@ export class WebPlatformUtilsService implements PlatformUtilsService {
+     }
+ 
+     isDev(): boolean {
+-        return process.env.ENV === 'development';
++        return false;
+     }
+ 
++    // Even though Vaultwarden is self-hosted, returning true ends up enabling various license checks.
+     isSelfHost(): boolean {
+-        return process.env.SELF_HOST.toString() === 'true';
++        return false;
+     }
+ 
+     copyToClipboard(text: string, options?: any): void | boolean {
