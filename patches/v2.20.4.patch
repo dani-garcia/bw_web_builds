@@ -189,7 +189,7 @@ diff --git a/src/scss/styles.scss b/src/scss/styles.scss
 index 598fea83..f5ed4253 100644
 --- a/src/scss/styles.scss
 +++ b/src/scss/styles.scss
-@@ -1,5 +1,59 @@
+@@ -1,5 +1,56 @@
  @import "../css/webfonts.css";
  
 +/**** START Bitwarden_RS CHANGES ****/
@@ -204,9 +204,6 @@ index 598fea83..f5ed4253 100644
 +
 +/* Hide any link pointing to subscriptions */
 +a[href$="/settings/subscription"] { @extend %bwrs-hide; }
-+
-+/* Hide any link pointing to emergency access */
-+a[href$="/settings/emergency-access"] { @extend %bwrs-hide; }
 +
 +/* Hide the `Enterprise Single Sign-On` button on the login page */
 +a[href$="/sso"] { @extend %bwrs-hide; }
