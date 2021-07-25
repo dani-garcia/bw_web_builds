@@ -1,0 +1,9 @@
+ignored:
+  # Disable Multiple consecutive `RUN` instructions check.
+  - DL3059
+  # Disable pipefail check
+  - DL4006
+  # Disable Shellcheck Quote check
+  - SC2046
+trustedRegistries:
+  - docker.io

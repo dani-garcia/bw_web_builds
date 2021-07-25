@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 set -o pipefail -o errexit
 
 # Error handling
@@ -18,11 +18,13 @@ VAULT_FOLDER=web-vault
 OUTPUT_FOLDER=builds
 OUTPUT_NAME="$OUTPUT_FOLDER/bw_web_$VAULT_VERSION.tar.gz"
 
+npm install npm@7
+
 mkdir -p "$OUTPUT_FOLDER"
 
 # If this is the first time, clone the project
 if [ ! -d "$VAULT_FOLDER" ]; then
-    git clone --recurse-submodules https://github.com/bitwarden/web.git "$VAULT_FOLDER"
+    git clone https://github.com/bitwarden/web.git "$VAULT_FOLDER"
 fi
 
 cd $VAULT_FOLDER
@@ -31,7 +33,7 @@ cd $VAULT_FOLDER
 git checkout -f
 
 # Update branch
-git fetch --tags
+git fetch --tags --all
 git pull origin master
 
 # Checkput the branch we want
@@ -45,8 +47,8 @@ git submodule update --recursive --init
 . ../apply_patches.sh
 
 # Build
-npm install
-npm audit fix
+npm ci
+npm audit fix || true
 npm run dist
 
 # Delete debugging map files, optional
@@ -54,7 +56,7 @@ npm run dist
 
 # Create bwrs-version.json with the latest tag from the remote repo.
 printf '{"version":"%s"}' \
-      $(git -c 'versionsort.suffix=-' ls-remote --tags --sort='v:refname' https://github.com/dani-garcia/bw_web_builds.git 'v*' | tail -n1 | sed -E 's#.*?refs/tags/v##') \
+      "$(git -c 'versionsort.suffix=-' ls-remote --tags --sort='v:refname' https://github.com/dani-garcia/bw_web_builds.git 'v*' | tail -n1 | sed -E 's#.*?refs/tags/v##')" \
       > build/bwrs-version.json
 
 # Prepare the final archives

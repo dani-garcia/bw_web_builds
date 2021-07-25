@@ -12,7 +12,10 @@
 #    docker cp $image_id:/bw_web_vault.tar.gz .
 #    docker rm $image_id
 
-FROM node:14.16.0-buster as build
+FROM node:14-buster as build
+
+# Update NPM - Matching the bitwarden/web GH Action Workflow.
+RUN npm -g install npm@7
 
 # Prepare the folder to enable non-root, otherwise npm will refuse to run the postinstall
 RUN mkdir /vault
@@ -22,14 +25,14 @@ USER node
 # Can be a tag, release, but prefer a commit hash because it's not changeable
 # https://github.com/bitwarden/web/commit/$VAULT_VERSION
 #
-# Using https://github.com/bitwarden/web/releases/tag/v2.20.4
-ARG VAULT_VERSION=daf641e978ea381cc744a4b7265e64de338101d1
+# Using https://github.com/bitwarden/web/releases/tag/v2.21.1
+ARG VAULT_VERSION=62cd45030ad5b0a0bdbd08f0579f8ffac91a48a4
 
 RUN git clone https://github.com/bitwarden/web.git /vault
 WORKDIR /vault
 
-RUN git checkout "$VAULT_VERSION"
-RUN git submodule update --recursive --init
+RUN git checkout "$VAULT_VERSION" && \
+    git submodule update --recursive --init
 
 COPY --chown=node:node patches /patches
 COPY --chown=node:node apply_patches.sh /apply_patches.sh
@@ -37,8 +40,8 @@ COPY --chown=node:node apply_patches.sh /apply_patches.sh
 RUN bash /apply_patches.sh
 
 # Build
-RUN npm install
-RUN npm audit fix
+RUN npm ci
+RUN npm audit fix || true
 RUN npm run dist
 
 RUN printf '{"version":"%s"}' \
@@ -55,6 +58,7 @@ RUN tar -czvf "bw_web_vault.tar.gz" web-vault --owner=0 --group=0
 # We copy the final result as a separate empty image so there's no need to download all the intermediate steps
 # The result is included both uncompressed and as a tar.gz, to be able to use it in the docker images and the github releases directly
 FROM scratch
+# hadolint ignore=DL3010
 COPY --from=build /vault/bw_web_vault.tar.gz /bw_web_vault.tar.gz
 COPY --from=build /vault/web-vault /web-vault
 # Added so docker create works, can't actually run a scratch image
