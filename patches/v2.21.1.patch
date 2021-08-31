@@ -59,6 +59,51 @@ index eba36375..cb8883ec 100644
          </div>
      </body>
  </html>
+diff --git a/src/app-config.js b/src/app-config.js
+new file mode 100644
+index 00000000..f4fffeed
+--- /dev/null
++++ b/src/app-config.js
+@@ -0,0 +1 @@
++window.VW_SIGNUPS_ALLOWED = true;
+diff --git a/src/app/accounts/login.component.html b/src/app/accounts/login.component.html
+index 97d5c478..44778bdd 100644
+--- a/src/app/accounts/login.component.html
++++ b/src/app/accounts/login.component.html
+@@ -43,7 +43,7 @@
+                             </span>
+                             <i class="fa fa-spinner fa-spin" title="{{'loading' | i18n}}" aria-hidden="true"></i>
+                         </button>
+-                        <a routerLink="/register" [queryParams]="{email: email}"
++                        <a *ngIf="VW_SIGNUPS_ALLOWED" routerLink="/register" [queryParams]="{email: email}"
+                             class="btn btn-outline-secondary btn-block ml-2 mt-0">
+                             <i class="fa fa-pencil-square-o" aria-hidden="true"></i> {{'createAccount' | i18n}}
+                         </a>
+diff --git a/src/app/accounts/login.component.ts b/src/app/accounts/login.component.ts
+index d705f097..47d1e7f9 100644
+--- a/src/app/accounts/login.component.ts
++++ b/src/app/accounts/login.component.ts
+@@ -19,6 +19,12 @@ import { LoginComponent as BaseLoginComponent } from 'jslib-angular/components/l
+
+ import { Policy } from 'jslib-common/models/domain/policy';
+
++declare global {
++    interface Window {
++        VW_SIGNUPS_ALLOWED: boolean;
++    }
++}
++
+ @Component({
+     selector: 'app-login',
+     templateUrl: 'login.component.html',
+@@ -26,6 +32,7 @@ import { Policy } from 'jslib-common/models/domain/policy';
+ export class LoginComponent extends BaseLoginComponent {
+
+     showResetPasswordAutoEnrollWarning = false;
++    VW_SIGNUPS_ALLOWED = window.VW_SIGNUPS_ALLOWED;
+
+     constructor(authService: AuthService, router: Router,
+         i18nService: I18nService, private route: ActivatedRoute,
 diff --git a/src/app/app.component.ts b/src/app/app.component.ts
 index 2922cf09..8f2be1ad 100644
 --- a/src/app/app.component.ts
@@ -193,6 +238,18 @@ index 41216ead..70dec887 100644
 
          const queryParamsSub = this.route.queryParams.subscribe(async params => {
              await this.syncService.fullSync(false);
+diff --git a/src/index.html b/src/index.html
+index 3c663967..753c1877 100644
+--- a/src/index.html
++++ b/src/index.html
+@@ -13,6 +13,7 @@
+     <link rel="icon" type="image/png" sizes="16x16" href="images/icons/favicon-16x16.png">
+     <link rel="mask-icon" href="images/icons/safari-pinned-tab.svg" color="#175DDC">
+     <link rel="manifest" href="manifest.json">
++    <script src="app-config.js"></script>
+ </head>
+
+ <body class="layout_frontend">
 diff --git a/src/scss/styles.scss b/src/scss/styles.scss
 index 598fea83..f5ed4253 100644
 --- a/src/scss/styles.scss
@@ -276,3 +333,15 @@ index e3aeea39..6e7ed1e0 100644
      }
 
      copyToClipboard(text: string, options?: any): void | boolean {
+diff --git a/webpack.config.js b/webpack.config.js
+index 58a656d4..ca24525c 100644
+--- a/webpack.config.js
++++ b/webpack.config.js
+@@ -118,6 +118,7 @@ const plugins = [
+             { from: './src/manifest.json' },
+             { from: './src/favicon.ico' },
+             { from: './src/browserconfig.xml' },
++            { from: './src/app-config.js'},
+             { from: './src/app-id.json' },
+             { from: './src/404.html' },
+             { from: './src/404', to: '404' },
