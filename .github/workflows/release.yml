@@ -1,0 +1,41 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v[0-9.]+[a-z]*'
+
+jobs:
+  docker-build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f # v2.3.4
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@f054a8b539a109f9f41c372932f1ae047eff08c9 # v1.10.0
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      # Determine Docker Tag
+      - name: Init Variables
+        id: vars
+        shell: bash
+        run: |
+          if [[ "${{ github.ref }}" == refs/tags/* ]]; then
+            echo "set-output name=DOCKER_TAG::${GITHUB_REF#refs/*/}"
+            echo "::set-output name=DOCKER_TAG::${GITHUB_REF#refs/*/}"
+          elif [[ "${{ github.ref }}" == refs/heads/* ]]; then
+            echo "set-output name=DOCKER_TAG::testing"
+            echo "::set-output name=DOCKER_TAG::testing"
+          fi
+      
+      - name: Build and push
+        uses: docker/build-push-action@a66e35b9cbcf4ad0ea91ffcaf7bbad63ad9e0229 # v2.7.0
+        with:
+          context: .
+          push: true
+          # secrets.DOCKERHUB_REPO needs to be '<user>/<repo>', for example 'vaultwarden/web-vault'
+          tags: "${{ secrets.DOCKERHUB_REPO }}:${{ steps.vars.outputs.DOCKER_TAG }}"
+
