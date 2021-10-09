@@ -236,9 +236,6 @@ index a3fb35de..e439e08e 100644
 +/* Hide the warning that policy config is moving to Business Portal */
 +app-org-policies > app-callout { @extend %bwrs-hide; }
 +
-+/* Hide `Single Organization` policy */
-+app-org-policies > table > tbody > tr:nth-child(4) { @extend %bwrs-hide; }
-+
 +/* Hide Tax Info and Form in Organization settings */
 +app-org-account > div.secondary-header:nth-child(3) { @extend %bwrs-hide; }
 +app-org-account > div.secondary-header:nth-child(3) + p { @extend %bwrs-hide; }
