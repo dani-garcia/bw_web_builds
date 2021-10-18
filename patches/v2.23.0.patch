@@ -191,7 +191,7 @@ diff --git a/src/scss/styles.scss b/src/scss/styles.scss
 index a3fb35de..e439e08e 100644
 --- a/src/scss/styles.scss
 +++ b/src/scss/styles.scss
-@@ -1,5 +1,56 @@
+@@ -1,5 +1,53 @@
  @import "../css/webfonts.css";
  
 +/**** START Bitwarden_RS CHANGES ****/
