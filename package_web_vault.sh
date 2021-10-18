@@ -47,8 +47,9 @@ git submodule update --recursive --init
 . ../apply_patches.sh
 
 # Build
-npm ci
-npm audit fix || true
+sed -i 's/"gulp-google-webfonts": "^4.0.0"/"gulp-google-webfonts": "^4.1.0"/' package.json
+npm ci --legacy-peer-deps
+npm audit fix --legacy-peer-deps || true
 npm run dist
 
 # Delete debugging map files, optional

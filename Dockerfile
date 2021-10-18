@@ -26,7 +26,7 @@ USER node
 # https://github.com/bitwarden/web/commit/$VAULT_VERSION
 #
 # Using https://github.com/bitwarden/web/releases/tag/v2.23.0
-ARG VAULT_VERSION=cfa3d81cf87ed59c471021608b9b922023c825f1
+ARG VAULT_VERSION=cfa3d81cf87ed59c471021608b9b922023c825f1 # TODO: When updating to a newer image, remove the package.json patch below
 
 RUN git clone https://github.com/bitwarden/web.git /vault
 WORKDIR /vault
@@ -40,8 +40,9 @@ COPY --chown=node:node apply_patches.sh /apply_patches.sh
 RUN bash /apply_patches.sh
 
 # Build
-RUN npm ci
-RUN npm audit fix || true
+RUN sed -i 's/"gulp-google-webfonts": "^4.0.0"/"gulp-google-webfonts": "^4.1.0"/' package.json
+RUN npm ci --legacy-peer-deps
+RUN npm audit fix --legacy-peer-deps || true
 RUN npm run dist
 
 RUN printf '{"version":"%s"}' \
