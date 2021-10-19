@@ -26,7 +26,8 @@ USER node
 # https://github.com/bitwarden/web/commit/$VAULT_VERSION
 #
 # Using https://github.com/bitwarden/web/releases/tag/v2.23.0
-ARG VAULT_VERSION=cfa3d81cf87ed59c471021608b9b922023c825f1 # TODO: When updating to a newer image, remove the package.json patch below
+# TODO: When updating to a newer image, remove the package.json patch below
+ARG VAULT_VERSION=cfa3d81cf87ed59c471021608b9b922023c825f1
 
 RUN git clone https://github.com/bitwarden/web.git /vault
 WORKDIR /vault
