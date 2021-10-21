@@ -116,6 +116,21 @@ index 216c1d91..73e82119 100644
          }
      }
  
+diff --git a/src/app/organizations/vault/vault.component.ts b/src/app/organizations/vault/vault.component.ts
+index 4d98e38a..a52f68c7 100644
+--- a/src/app/organizations/vault/vault.component.ts
++++ b/src/app/organizations/vault/vault.component.ts
+@@ -61,9 +61,7 @@ export class VaultComponent implements OnInit, OnDestroy {
+         private platformUtilsService: PlatformUtilsService) { }
+ 
+     ngOnInit() {
+-        this.trashCleanupWarning = this.i18nService.t(
+-            this.platformUtilsService.isSelfHost() ? 'trashCleanupWarningSelfHosted' : 'trashCleanupWarning'
+-        );
++        this.trashCleanupWarning = this.i18nService.t('trashCleanupWarningSelfHosted');
+ 
+         const queryParams = this.route.parent.params.subscribe(async params => {
+             this.organization = await this.userService.getOrganization(params.organizationId);
 diff --git a/src/app/send/access.component.html b/src/app/send/access.component.html
 index 84944a2b..107ad359 100644
 --- a/src/app/send/access.component.html
