@@ -188,10 +188,10 @@ index 7ac88452..e6d92ec7 100644
          const queryParamsSub = this.route.queryParams.subscribe(async params => {
              await this.syncService.fullSync(false);
 diff --git a/src/scss/styles.scss b/src/scss/styles.scss
-index a3fb35de..e439e08e 100644
+index a3fb35de..dca4e036 100644
 --- a/src/scss/styles.scss
 +++ b/src/scss/styles.scss
-@@ -1,5 +1,53 @@
+@@ -1,5 +1,58 @@
  @import "../css/webfonts.css";
  
 +/**** START Bitwarden_RS CHANGES ****/
@@ -219,6 +219,11 @@ index a3fb35de..e439e08e 100644
 +/* Hide organization plans */
 +app-organization-plans > form > div.form-check { @extend %bwrs-hide; }
 +app-organization-plans > form > h2.mt-5 { @extend %bwrs-hide; }
++
++/* Hide the `This account is owned by a business` checkbox and label */
++#ownedBusiness, label[for^=ownedBusiness] {
++    @extend %bwrs-hide;
++}
 +
 +/* Hide the `API Key` section under `My Account` */
 +app-account > div:nth-child(9),
