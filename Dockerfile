@@ -25,9 +25,8 @@ USER node
 # Can be a tag, release, but prefer a commit hash because it's not changeable
 # https://github.com/bitwarden/web/commit/$VAULT_VERSION
 #
-# Using https://github.com/bitwarden/web/releases/tag/v2.23.0
-# TODO: When updating to a newer image, remove the package.json patch below
-ARG VAULT_VERSION=cfa3d81cf87ed59c471021608b9b922023c825f1
+# Using https://github.com/bitwarden/web/releases/tag/v2.24.1
+ARG VAULT_VERSION=a6274fa56ec869a5c981c2edfff9db87a3bca4bf
 
 RUN git clone https://github.com/bitwarden/web.git /vault
 WORKDIR /vault
@@ -41,10 +40,9 @@ COPY --chown=node:node apply_patches.sh /apply_patches.sh
 RUN bash /apply_patches.sh
 
 # Build
-RUN sed -i 's/"gulp-google-webfonts": "^4.0.0"/"gulp-google-webfonts": "^4.1.0"/' package.json
 RUN npm ci --legacy-peer-deps
 RUN npm audit fix --legacy-peer-deps || true
-RUN npm run dist
+RUN npm run dist:oss:selfhost
 
 RUN printf '{"version":"%s"}' \
       $(git -c 'versionsort.suffix=-' ls-remote --tags --sort='v:refname' https://github.com/dani-garcia/bw_web_builds.git 'v*' | tail -n1 | sed -E 's#.*?refs/tags/v##') \
