@@ -12,10 +12,8 @@
 #    docker cp $image_id:/bw_web_vault.tar.gz .
 #    docker rm $image_id
 
-FROM node:14-buster as build
-
-# Update NPM - Matching the bitwarden/web GH Action Workflow.
-RUN npm -g install npm@7
+FROM node:16-buster as build
+RUN node -v && npm -v
 
 # Prepare the folder to enable non-root, otherwise npm will refuse to run the postinstall
 RUN mkdir /vault
@@ -25,8 +23,8 @@ USER node
 # Can be a tag, release, but prefer a commit hash because it's not changeable
 # https://github.com/bitwarden/web/commit/$VAULT_VERSION
 #
-# Using https://github.com/bitwarden/web/releases/tag/v2.24.1
-ARG VAULT_VERSION=a6274fa56ec869a5c981c2edfff9db87a3bca4bf
+# Using https://github.com/bitwarden/web/releases/tag/v2.25.0
+ARG VAULT_VERSION=d10dc94a48f7786d0b7b33a53f15a208f3f2b75f
 
 RUN git clone https://github.com/bitwarden/web.git /vault
 WORKDIR /vault
