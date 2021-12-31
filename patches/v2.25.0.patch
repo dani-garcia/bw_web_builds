@@ -193,61 +193,64 @@ diff --git a/src/scss/styles.scss b/src/scss/styles.scss
 index 45a91fe1..4509368f 100644
 --- a/src/scss/styles.scss
 +++ b/src/scss/styles.scss
-@@ -55,3 +55,54 @@
+@@ -55,3 +55,57 @@
  @import "./plugins";
  @import "./tables";
  @import "./toasts";
 +
-+/**** START Bitwarden_RS CHANGES ****/
++/**** START Vaultwarden CHANGES ****/
 +/* This combines all selectors extending it into one */
-+%bwrs-hide { display: none !important; }
++%vw-hide { display: none !important; }
 +
 +/* This allows searching for the combined style in the browsers dev-tools (look into the head tag) */
-+#bwrs-hide, head { @extend %bwrs-hide; }
++#vw-hide, head { @extend %vw-hide; }
 +
 +/* Hide any link pointing to billing */
-+a[href$="/settings/billing"] { @extend %bwrs-hide; }
++a[href$="/settings/billing"] { @extend %vw-hide; }
 +
 +/* Hide any link pointing to subscriptions */
-+a[href$="/settings/subscription"] { @extend %bwrs-hide; }
++a[href$="/settings/subscription"] { @extend %vw-hide; }
++
++/* Hide any link pointing to Sponsored Families */
++a[href$="/settings/sponsored-families"] { @extend %vw-hide; }
 +
 +/* Hide the `Enterprise Single Sign-On` button on the login page */
-+a[href$="/sso"] { @extend %bwrs-hide; }
++a[href$="/sso"] { @extend %vw-hide; }
 +
 +/* Hide the info box that advertises Bitwarden Send */
-+app-send-info.d-block { @extend %bwrs-hide; }
++app-send-info.d-block { @extend %vw-hide; }
 +
 +/* Hide Two-Factor menu in Organization settings */
-+app-org-settings a[href$="/settings/two-factor"] { @extend %bwrs-hide; }
++app-org-settings a[href$="/settings/two-factor"] { @extend %vw-hide; }
 +
 +/* Hide organization plans */
-+app-organization-plans > form > div.form-check { @extend %bwrs-hide; }
-+app-organization-plans > form > h2.mt-5 { @extend %bwrs-hide; }
++app-organization-plans > form > div.form-check { @extend %vw-hide; }
++app-organization-plans > form > h2.mt-5 { @extend %vw-hide; }
 +
 +/* Hide the `This account is owned by a business` checkbox and label */
-+#ownedBusiness, label[for^=ownedBusiness] { @extend %bwrs-hide; }
++#ownedBusiness, label[for^=ownedBusiness] { @extend %vw-hide; }
 +
 +/* Hide the `API Key` section under `My Account` */
 +app-account > div:nth-child(9),
 +app-account > p,
 +app-account > button:nth-child(11),
 +app-account > button:nth-child(12) {
-+    @extend %bwrs-hide;
++    @extend %vw-hide;
 +}
 +
 +/* Hide the radio button and label for the `Custom` org user type */
 +#userTypeCustom, label[for^=userTypeCustom] {
-+    @extend %bwrs-hide;
++    @extend %vw-hide;
 +}
 +
 +/* Hide the warning that policy config is moving to Business Portal */
-+app-org-policies > app-callout { @extend %bwrs-hide; }
++app-org-policies > app-callout { @extend %vw-hide; }
 +
 +/* Hide Tax Info and Form in Organization settings */
-+app-org-account > div.secondary-header:nth-child(3) { @extend %bwrs-hide; }
-+app-org-account > div.secondary-header:nth-child(3) + p { @extend %bwrs-hide; }
-+app-org-account > div.secondary-header:nth-child(3) + p + form { @extend %bwrs-hide; }
-+/**** END Bitwarden_RS CHANGES ****/
++app-org-account > div.secondary-header:nth-child(3) { @extend %vw-hide; }
++app-org-account > div.secondary-header:nth-child(3) + p { @extend %vw-hide; }
++app-org-account > div.secondary-header:nth-child(3) + p + form { @extend %vw-hide; }
++/**** END Vaultwarden CHANGES ****/
 diff --git a/src/services/webPlatformUtils.service.ts b/src/services/webPlatformUtils.service.ts
 index 13f754c0..c40612d8 100644
 --- a/src/services/webPlatformUtils.service.ts
