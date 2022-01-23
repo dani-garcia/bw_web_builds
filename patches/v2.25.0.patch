@@ -193,7 +193,7 @@ diff --git a/src/scss/styles.scss b/src/scss/styles.scss
 index 45a91fe1..4509368f 100644
 --- a/src/scss/styles.scss
 +++ b/src/scss/styles.scss
-@@ -55,3 +55,57 @@
+@@ -55,3 +55,49 @@
  @import "./plugins";
  @import "./tables";
  @import "./toasts";
@@ -229,14 +229,6 @@ index 45a91fe1..4509368f 100644
 +
 +/* Hide the `This account is owned by a business` checkbox and label */
 +#ownedBusiness, label[for^=ownedBusiness] { @extend %vw-hide; }
-+
-+/* Hide the `API Key` section under `My Account` */
-+app-account > div:nth-child(9),
-+app-account > p,
-+app-account > button:nth-child(11),
-+app-account > button:nth-child(12) {
-+    @extend %vw-hide;
-+}
 +
 +/* Hide the radio button and label for the `Custom` org user type */
 +#userTypeCustom, label[for^=userTypeCustom] {
