@@ -23,8 +23,8 @@ USER node
 # Can be a tag, release, but prefer a commit hash because it's not changeable
 # https://github.com/bitwarden/web/commit/$VAULT_VERSION
 #
-# Using https://github.com/bitwarden/web/releases/tag/v2.25.1
-ARG VAULT_VERSION=23b30422d886bd395259cb864a7d83caffe1d099
+# Using https://github.com/bitwarden/web/releases/tag/v2.26.1
+ARG VAULT_VERSION=aa42890fdfbfe603efd6d410d2cbd109f2033db9
 
 RUN git clone https://github.com/bitwarden/web.git /vault
 WORKDIR /vault
@@ -38,13 +38,13 @@ COPY --chown=node:node apply_patches.sh /apply_patches.sh
 RUN bash /apply_patches.sh
 
 # Build
-RUN npm ci --legacy-peer-deps
-RUN npm audit fix --legacy-peer-deps || true
+RUN npm ci
+# RUN npm audit fix || true
 RUN npm run dist:oss:selfhost
 
 RUN printf '{"version":"%s"}' \
       $(git -c 'versionsort.suffix=-' ls-remote --tags --sort='v:refname' https://github.com/dani-garcia/bw_web_builds.git 'v*' | tail -n1 | sed -E 's#.*?refs/tags/v##') \
-      > build/bwrs-version.json
+      > build/vw-version.json
 
 # Delete debugging map files, optional
 # RUN find build -name "*.map" -delete
