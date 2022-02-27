@@ -18,8 +18,6 @@ VAULT_FOLDER=web-vault
 OUTPUT_FOLDER=builds
 OUTPUT_NAME="$OUTPUT_FOLDER/bw_web_$VAULT_VERSION.tar.gz"
 
-npm install npm@7
-
 mkdir -p "$OUTPUT_FOLDER"
 
 # If this is the first time, clone the project
@@ -47,8 +45,8 @@ git submodule update --recursive --init
 . ../apply_patches.sh
 
 # Build
-npm ci --legacy-peer-deps
-npm audit fix --legacy-peer-deps || true
+npm ci
+# npm audit fix || true
 npm run dist:oss:selfhost
 
 # Delete debugging map files, optional
