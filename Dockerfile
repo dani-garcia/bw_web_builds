@@ -23,8 +23,8 @@ USER node
 # Can be a tag, release, but prefer a commit hash because it's not changeable
 # https://github.com/bitwarden/web/commit/$VAULT_VERSION
 #
-# Using https://github.com/bitwarden/web/releases/tag/v2.26.1
-ARG VAULT_VERSION=aa42890fdfbfe603efd6d410d2cbd109f2033db9
+# Using https://github.com/bitwarden/web/releases/tag/v2.27.0
+ARG VAULT_VERSION=05a17629a52ea188a146fbb6b2b82595e5eb73b5
 
 RUN git clone https://github.com/bitwarden/web.git /vault
 WORKDIR /vault
@@ -39,7 +39,7 @@ RUN bash /apply_patches.sh
 
 # Build
 RUN npm ci
-# RUN npm audit fix || true
+RUN npm audit fix || true
 RUN npm run dist:oss:selfhost
 
 RUN printf '{"version":"%s"}' \
