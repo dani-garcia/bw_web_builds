@@ -1,0 +1,271 @@
+Submodule jslib contains modified content
+diff --git a/jslib/angular/src/components/register.component.ts b/jslib/angular/src/components/register.component.ts
+index d4b99e17..c1626200 100644
+--- a/jslib/angular/src/components/register.component.ts
++++ b/jslib/angular/src/components/register.component.ts
+@@ -28,7 +28,7 @@ export class RegisterComponent extends CaptchaProtectedComponent implements OnIn
+   formPromise: Promise<any>;
+   masterPasswordScore: number;
+   referenceData: ReferenceEventRequest;
+-  showTerms = true;
++  showTerms = false;
+   acceptPolicies = false;
+ 
+   protected successRoute = "login";
+@@ -47,7 +47,7 @@ export class RegisterComponent extends CaptchaProtectedComponent implements OnIn
+     protected logService: LogService
+   ) {
+     super(environmentService, i18nService, platformUtilsService);
+-    this.showTerms = !platformUtilsService.isSelfHost();
++    this.showTerms = false;
+   }
+ 
+   async ngOnInit() {
+@@ -85,6 +85,15 @@ export class RegisterComponent extends CaptchaProtectedComponent implements OnIn
+   }
+ 
+   async submit() {
++    if (typeof crypto.subtle === 'undefined') {
++      this.platformUtilsService.showToast(
++        "error",
++        "This browser requires HTTPS to use the web vault",
++        "Check the Vaultwarden wiki for details on how to enable it"
++      );
++      return;
++    }
++
+     if (!this.acceptPolicies && this.showTerms) {
+       this.platformUtilsService.showToast(
+         "error",
+diff --git a/src/404.html b/src/404.html
+index 6cf5e363..54d11495 100644
+--- a/src/404.html
++++ b/src/404.html
+@@ -42,11 +42,10 @@
+         </a>
+       </p>
+       <p>
+-        You can <a href="/">return to the web vault</a>, check our
+-        <a href="https://status.bitwarden.com/">status page</a> or
+-        <a href="https://bitwarden.com/contact/">contact us</a>.
++        You can <a href="/">return to the web vault</a>, or
++        <a href="https://github.com/dani-garcia/vaultwarden">contact us</a>.
+       </p>
+     </div>
+-    <div class="container footer text-muted content">© Copyright 2022 Bitwarden, Inc.</div>
++    <div class="container footer text-muted content">© Copyright 2022 Bitwarden, Inc. (Powered by Vaultwarden)</div>
+   </body>
+ </html>
+diff --git a/src/app/app.component.ts b/src/app/app.component.ts
+index cd94408f..56bc4bdb 100644
+--- a/src/app/app.component.ts
++++ b/src/app/app.component.ts
+@@ -159,6 +159,10 @@ export class AppComponent implements OnDestroy, OnInit {
+             break;
+           }
+           case "showToast":
++            if (typeof message.text === "string" && typeof crypto.subtle === 'undefined') {
++              message.title="This browser requires HTTPS to use the web vault";
++              message.text="Check the Vaultwarden wiki for details on how to enable it";
++            }
+             this.showToast(message);
+             break;
+           case "setFullWidth":
+diff --git a/src/app/layouts/footer.component.html b/src/app/layouts/footer.component.html
+index 8601e123..22a0248b 100644
+--- a/src/app/layouts/footer.component.html
++++ b/src/app/layouts/footer.component.html
+@@ -1,6 +1,6 @@
+ <div class="container footer text-muted">
+   <div class="row">
+-    <div class="col">&copy; {{ year }}, Bitwarden Inc.</div>
++    <div class="col">&copy; {{ year }}, Bitwarden Inc. (Powered by Vaultwarden)</div>
+     <div class="col text-center"></div>
+     <div class="col text-right">
+       {{ "versionNumber" | i18n: version }}
+diff --git a/src/app/layouts/frontend-layout.component.html b/src/app/layouts/frontend-layout.component.html
+index 479302d3..84930683 100644
+--- a/src/app/layouts/frontend-layout.component.html
++++ b/src/app/layouts/frontend-layout.component.html
+@@ -1,5 +1,5 @@
+ <router-outlet></router-outlet>
+ <div class="container my-5 text-muted text-center">
+-  &copy; {{ year }}, Bitwarden Inc. <br />
++  &copy; {{ year }}, Bitwarden Inc. (Powered by Vaultwarden)<br />
+   {{ "versionNumber" | i18n: version }}
+ </div>
+diff --git a/src/app/layouts/navbar.component.html b/src/app/layouts/navbar.component.html
+index c03c2bdf..a074e0c2 100644
+--- a/src/app/layouts/navbar.component.html
++++ b/src/app/layouts/navbar.component.html
+@@ -65,7 +65,7 @@
+           </a>
+           <a
+             class="dropdown-item"
+-            href="https://bitwarden.com/help/"
++            href="https://github.com/dani-garcia/vaultwarden"
+             target="_blank"
+             rel="noopener"
+           >
+diff --git a/src/app/organizations/vault/vault.component.ts b/src/app/organizations/vault/vault.component.ts
+index ea7d683e..2b534e05 100644
+--- a/src/app/organizations/vault/vault.component.ts
++++ b/src/app/organizations/vault/vault.component.ts
+@@ -68,11 +68,7 @@ export class VaultComponent implements OnInit, OnDestroy {
+   ) {}
+ 
+   ngOnInit() {
+-    this.trashCleanupWarning = this.i18nService.t(
+-      this.platformUtilsService.isSelfHost()
+-        ? "trashCleanupWarningSelfHosted"
+-        : "trashCleanupWarning"
+-    );
++    this.trashCleanupWarning = this.i18nService.t("trashCleanupWarningSelfHosted");
+     this.route.parent.params.pipe(first()).subscribe(async (params) => {
+       this.organization = await this.organizationService.get(params.organizationId);
+       this.groupingsComponent.organization = this.organization;
+diff --git a/src/app/send/access.component.html b/src/app/send/access.component.html
+index 19bc107b..7e1dbcc7 100644
+--- a/src/app/send/access.component.html
++++ b/src/app/send/access.component.html
+@@ -137,15 +137,6 @@
+     <div class="col-12 text-center mt-5 text-muted">
+       <p class="mb-0">
+         {{ "sendAccessTaglineProductDesc" | i18n }}<br />
+-        {{ "sendAccessTaglineLearnMore" | i18n }}
+-        <a href="https://www.bitwarden.com/products/send?source=web-vault" target="_blank"
+-          >Bitwarden Send</a
+-        >
+-        {{ "sendAccessTaglineOr" | i18n }}
+-        <a href="https://vault.bitwarden.com/#/register" target="_blank">{{
+-          "sendAccessTaglineSignUp" | i18n
+-        }}</a>
+-        {{ "sendAccessTaglineTryToday" | i18n }}
+       </p>
+     </div>
+   </div>
+diff --git a/src/app/services/services.module.ts b/src/app/services/services.module.ts
+index c8e95320..88f5240c 100644
+--- a/src/app/services/services.module.ts
++++ b/src/app/services/services.module.ts
+@@ -65,11 +65,23 @@ export function initFactory(
+   platformUtilsService: PlatformUtilsServiceAbstraction,
+   cryptoService: CryptoServiceAbstraction
+ ): () => void {
++  function getBaseUrl() {
++      // If the base URL is `https://vaultwarden.example.com/base/path/`,
++      // `window.location.href` should have one of the following forms:
++      //
++      // - `https://vaultwarden.example.com/base/path/`
++      // - `https://vaultwarden.example.com/base/path/#/some/route[?queryParam=...]`
++      //
++      // We want to get to just `https://vaultwarden.example.com/base/path`.
++      let baseUrl = window.location.href;
++      baseUrl = baseUrl.replace(/#.*/, '');  // Strip off `#` and everything after.
++      baseUrl = baseUrl.replace(/\/+$/, ''); // Trim any trailing `/` chars.
++      return baseUrl;
++  }
+   return async () => {
+     await stateService.init();
+ 
+-    const urls = process.env.URLS as Urls;
+-    urls.base ??= window.location.origin;
++    const urls = {base: getBaseUrl()};
+     environmentService.setUrls(urls);
+ 
+     setTimeout(() => notificationsService.init(), 3000);
+diff --git a/src/app/vault/vault.component.ts b/src/app/vault/vault.component.ts
+index c3730bfa..3fab9245 100644
+--- a/src/app/vault/vault.component.ts
++++ b/src/app/vault/vault.component.ts
+@@ -91,11 +91,7 @@ export class VaultComponent implements OnInit, OnDestroy {
+   async ngOnInit() {
+     this.showVerifyEmail = !(await this.tokenService.getEmailVerified());
+     this.showBrowserOutdated = window.navigator.userAgent.indexOf("MSIE") !== -1;
+-    this.trashCleanupWarning = this.i18nService.t(
+-      this.platformUtilsService.isSelfHost()
+-        ? "trashCleanupWarningSelfHosted"
+-        : "trashCleanupWarning"
+-    );
++    this.trashCleanupWarning = this.i18nService.t('trashCleanupWarningSelfHosted');
+ 
+     this.route.queryParams.pipe(first()).subscribe(async (params) => {
+       await this.syncService.fullSync(false);
+diff --git a/src/scss/styles.scss b/src/scss/styles.scss
+index d2678ac8..fb467a7e 100644
+--- a/src/scss/styles.scss
++++ b/src/scss/styles.scss
+@@ -56,3 +56,55 @@
+ @import "./plugins";
+ @import "./tables";
+ @import "./toasts";
++
++
++/**** START Vaultwarden CHANGES ****/
++/* This combines all selectors extending it into one */
++%vw-hide { display: none !important; }
++
++/* This allows searching for the combined style in the browsers dev-tools (look into the head tag) */
++#vw-hide, head { @extend %vw-hide; }
++
++/* Hide any link pointing to billing */
++a[href$="/settings/billing"] { @extend %vw-hide; }
++
++/* Hide any link pointing to subscriptions */
++a[href$="/settings/subscription"] { @extend %vw-hide; }
++
++/* Hide any link pointing to Sponsored Families */
++a[href$="/settings/sponsored-families"] { @extend %vw-hide; }
++
++/* Hide the `Enterprise Single Sign-On` button on the login page */
++a[href$="/sso"] { @extend %vw-hide; }
++
++/* Hide the info box that advertises Bitwarden Send */
++app-send-info.d-block { @extend %vw-hide; }
++
++/* Hide Two-Factor menu in Organization settings */
++app-org-settings a[href$="/settings/two-factor"] { @extend %vw-hide; }
++
++/* Hide organization plans */
++app-organization-plans > form > div.form-check { @extend %vw-hide; }
++app-organization-plans > form > h2.mt-5 { @extend %vw-hide; }
++
++/* Hide the `This account is owned by a business` checkbox and label */
++#ownedBusiness, label[for^=ownedBusiness] { @extend %vw-hide; }
++
++/* Hide External Id field for Collections */
++app-collection-add-edit form div.form-group:nth-child(2) { @extend %vw-hide; }
++
++/* Hide the radio button and label for the `Custom` org user type */
++#userTypeCustom, label[for^=userTypeCustom] { @extend %vw-hide; }
++
++/* Hide the warning that policy config is moving to Business Portal */
++app-org-policies > app-callout { @extend %vw-hide; }
++
++/* Hide Business Name and Identifier */
++app-org-account form div.form-group:nth-child(3) { display: none; }
++app-org-account form div.form-group:nth-child(4) { display: none; }
++
++/* Hide Tax Info and Form in Organization settings */
++app-org-account > div.secondary-header:nth-child(3) { @extend %vw-hide; }
++app-org-account > div.secondary-header:nth-child(3) + p { @extend %vw-hide; }
++app-org-account > div.secondary-header:nth-child(3) + p + form { @extend %vw-hide; }
++/**** END Vaultwarden CHANGES ****/
+diff --git a/src/services/webPlatformUtils.service.ts b/src/services/webPlatformUtils.service.ts
+index 0c9b56fa..297d4bc5 100644
+--- a/src/services/webPlatformUtils.service.ts
++++ b/src/services/webPlatformUtils.service.ts
+@@ -238,11 +238,11 @@ export class WebPlatformUtilsService implements PlatformUtilsService {
+   }
+ 
+   isDev(): boolean {
+-    return process.env.NODE_ENV === "development";
++    return false;
+   }
+ 
+   isSelfHost(): boolean {
+-    return process.env.ENV.toString() === "selfhosted";
++    return false;
+   }
+ 
+   copyToClipboard(text: string, options?: any): void | boolean {
