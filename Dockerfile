@@ -13,7 +13,7 @@
 #    docker rm $image_id
 
 FROM node:16-bullseye as build
-RUN node -v && npm -v
+RUN node --version && npm --version
 
 # Prepare the folder to enable non-root, otherwise npm will refuse to run the postinstall
 RUN mkdir /vault
@@ -21,19 +21,19 @@ RUN chown node:node /vault
 USER node
 
 # Can be a tag, release, but prefer a commit hash because it's not changeable
-# https://github.com/bitwarden/web/commit/$VAULT_VERSION
+# https://github.com/bitwarden/web/commit/${VAULT_VERSION}
 #
-# Using https://github.com/bitwarden/web/releases/tag/v2.28.1
-ARG VAULT_VERSION=78a7181fe5afa677220d69c6ebb2d6c0a5b83729
+# Using https://github.com/bitwarden/web/releases/tag/2022.05.0
+ARG VAULT_VERSION=ec80782d8f2ec593adf4f2d874fc8b97783c9d33
 
 RUN git clone https://github.com/bitwarden/web.git /vault
 WORKDIR /vault
 
-RUN git checkout "$VAULT_VERSION" && \
-    git submodule update --recursive --init
+RUN git -c advice.detachedHead=false checkout "${VAULT_VERSION}" && \
+    git submodule update --recursive --init --force
 
 COPY --chown=node:node patches /patches
-COPY --chown=node:node apply_patches.sh /apply_patches.sh
+COPY --chown=node:node scripts/apply_patches.sh /apply_patches.sh
 
 RUN bash /apply_patches.sh
 

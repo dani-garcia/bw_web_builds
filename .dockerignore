@@ -1,7 +1,12 @@
 # Local build artifacts
 builds
+docker_builds
 web-vault
 
 # Documentation
 *.md
 *.txt
+
+# Other
+.github
+Makefile

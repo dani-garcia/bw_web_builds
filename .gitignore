@@ -1,4 +1,5 @@
 builds/
+docker_builds/
 web-vault/
 
 *.tar.gz
