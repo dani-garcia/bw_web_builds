@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+# shellcheck disable=SC2034
+set -o pipefail -o errexit
+
+VAULT_FOLDER=web-vault
+OUTPUT_FOLDER=builds
+
+function get_web_vault_version {
+    # First check if we are able to get a tag or branch
+    VAULT_VERSION=$(git describe --abbrev=0 --tags --exact-match 2>/dev/null || git branch --show-current)
+    # Else we will use the current commit hash
+    if [[ -z "${VAULT_VERSION}" ]]; then
+      VAULT_VERSION=$(git rev-parse HEAD)
+    fi
+    echo "${VAULT_VERSION}"
+}
