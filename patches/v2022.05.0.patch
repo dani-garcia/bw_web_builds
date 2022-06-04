@@ -191,6 +191,35 @@ index eacfea97..c2f81033 100644
        this.environmentService.setUrls(urls);
  
        setTimeout(() => this.notificationsService.init(), 3000);
+diff --git a/src/app/settings/settings.component.ts b/src/app/settings/settings.component.ts
+index 9756ba41..348c3843 100644
+--- a/src/app/settings/settings.component.ts
++++ b/src/app/settings/settings.component.ts
+@@ -55,10 +55,6 @@ export class SettingsComponent implements OnInit, OnDestroy {
+     this.hasFamilySponsorshipAvailable = await this.organizationService.canManageSponsorships();
+     const hasPremiumFromOrg = await this.stateService.getCanAccessPremium();
+     let billing = null;
+-    if (!this.selfHosted) {
+-      billing = await this.apiService.getUserBillingHistory();
+-    }
+-    this.hideSubscription =
+-      !this.premium && hasPremiumFromOrg && (this.selfHosted || billing?.hasNoHistory);
++    this.hideSubscription = true;
+   }
+ }
+diff --git a/src/app/settings/user-billing-history.component.ts b/src/app/settings/user-billing-history.component.ts
+index ae26862d..69ff16a0 100644
+--- a/src/app/settings/user-billing-history.component.ts
++++ b/src/app/settings/user-billing-history.component.ts
+@@ -39,7 +39,7 @@ export class UserBillingHistoryComponent implements OnInit {
+       return;
+     }
+     this.loading = true;
+-    this.billing = await this.apiService.getUserBillingHistory();
++    this.billing = null;
+     this.loading = false;
+   }
+ 
 diff --git a/src/app/vault/add-edit.component.html b/src/app/vault/add-edit.component.html
 index 37410ea5..8c9e1a6f 100644
 --- a/src/app/vault/add-edit.component.html
