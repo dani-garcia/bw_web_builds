@@ -45,6 +45,7 @@ docker-extract: docker
 	@docker rm bw_web_vault_extract || true
 	@docker create --name bw_web_vault_extract bw_web_vault
 	@mkdir -vp docker_builds
+	@rm -rf ./docker_builds/bw_web_vault.tar.gz ./docker_builds/web-vault
 	@docker cp bw_web_vault_extract:/bw_web_vault.tar.gz ./docker_builds/bw_web_vault.tar.gz
 	@docker cp bw_web_vault_extract:/web-vault ./docker_builds/web-vault
 	@docker rm bw_web_vault_extract || true
