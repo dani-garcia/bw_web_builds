@@ -13,15 +13,18 @@ trap 'handle_error $LINENO $?' ERR
 # shellcheck source=.script_env
 . "${BASEDIR}/.script_env"
 
-mkdir -pv "${OUTPUT_FOLDER}"
+mkdir -pv "${BASEDIR}/../${OUTPUT_FOLDER}"
 
-pushd "${VAULT_FOLDER}"
+pushd "${VAULT_FOLDER}/apps/web"
 
 VAULT_VERSION=$(get_web_vault_version)
-OUTPUT_NAME="${OUTPUT_FOLDER}/bw_web_${VAULT_VERSION}.tar.gz"
+OUTPUT_NAME="${OUTPUT_FOLDER}/bw_web_${VAULT_VERSION}"
 
 mv build web-vault
-tar -czvf "../${OUTPUT_NAME}" web-vault --owner=0 --group=0
+# Tar the web-vault
+tar -czvf "${BASEDIR}/../${OUTPUT_NAME}.tar.gz" web-vault --owner=0 --group=0
+# Copy the web-vault
+cp -dpr web-vault "${BASEDIR}/../${OUTPUT_NAME}"
 mv web-vault build
 
 popd

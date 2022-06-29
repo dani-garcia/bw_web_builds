@@ -16,7 +16,7 @@ trap 'handle_error $LINENO $?' ERR
 pushd "${VAULT_FOLDER}"
 
 VAULT_VERSION=$(get_web_vault_version)
-# Check if the vault versions starts with 20
+# Check if the vault versions starts with 20 and isn't a 40 char hash
 if [[ ${VAULT_VERSION} = 20* ]] && [ ${#VAULT_VERSION} -ne 40 ]; then
     VAULT_VERSION="v${VAULT_VERSION}"
 fi

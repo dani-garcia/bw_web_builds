@@ -12,5 +12,5 @@ function get_web_vault_version {
     if [[ -z "${VAULT_VERSION}" ]]; then
       VAULT_VERSION=$(git rev-parse HEAD)
     fi
-    echo "${VAULT_VERSION}"
+    echo "${VAULT_VERSION#web-}"
 }
