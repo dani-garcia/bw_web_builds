@@ -13,15 +13,16 @@ trap 'handle_error $LINENO $?' ERR
 # shellcheck source=.script_env
 . "${BASEDIR}/.script_env"
 
-pushd "${VAULT_FOLDER}"
-
 # Show used versions
 node --version
 npm --version
 
 # Build
+pushd "${VAULT_FOLDER}"
 npm ci
 npm audit fix || true
+
+pushd apps/web
 npm run dist:oss:selfhost
 
 # Delete debugging map files, optional
@@ -32,4 +33,5 @@ printf '{"version":"%s"}' \
       "$(git -c 'versionsort.suffix=-' ls-remote --tags --sort='v:refname' https://github.com/dani-garcia/bw_web_builds.git 'v*' | tail -n1 | sed -E 's#.*?refs/tags/v##')" \
       > build/vw-version.json
 
+popd
 popd

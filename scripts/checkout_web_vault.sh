@@ -21,7 +21,7 @@ fi
 
 if [ ! -d "${VAULT_FOLDER}" ]; then
     # If this is the first time, clone the project
-    git clone https://github.com/bitwarden/web.git "${VAULT_FOLDER}"
+    git clone https://github.com/bitwarden/clients.git "${VAULT_FOLDER}"
 else
     # If there already is a checked-out repo, lets clean it up first.
     pushd "${VAULT_FOLDER}"
@@ -42,6 +42,5 @@ git pull origin master
 
 # Checkout the branch we want
 git -c advice.detachedHead=false checkout "${VAULT_VERSION}"
-git submodule update --recursive --init --force
 
 popd
