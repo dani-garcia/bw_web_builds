@@ -1,5 +1,10 @@
 # Compile the web vault using docker
 # Usage:
+#    Quick and easy:
+#    `make docker-extract`
+#    or, if you just want to build
+#    `make docker`
+#
 #    docker build -t web_vault_build .
 #    image_id=$(docker create web_vault_build)
 #    docker cp $image_id:/bw_web_vault.tar.gz .
@@ -21,10 +26,10 @@ RUN chown node:node /vault
 USER node
 
 # Can be a tag, release, but prefer a commit hash because it's not changeable
-# https://github.com/bitwarden/web/commit/${VAULT_VERSION}
+# https://github.com/bitwarden/clients/commit/${VAULT_VERSION}
 #
-# Using https://github.com/bitwarden/web/releases/tag/v2022.6.0
-ARG VAULT_VERSION=bb5f9311a776b94a33bcf0a7bff44cd87a2fcc92
+# Using https://github.com/bitwarden/clients/releases/tag/web-v2022.6.2
+ARG VAULT_VERSION=c0cb88a733c677fae84e517fbc63d7d16cb912c2
 
 RUN git clone https://github.com/bitwarden/clients.git /vault
 WORKDIR /vault

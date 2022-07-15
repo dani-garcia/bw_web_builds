@@ -19,6 +19,15 @@ if [[ -z "$VAULT_VERSION" ]]; then
     VAULT_VERSION="${input}"
 fi
 
+# Check the format of the provided vault version
+# If this is vYYYY.M.B or YYYY.M.B then fix this automatically to prepend web- or web-v
+if [[ "${VAULT_VERSION}" =~ ^20[0-9]{2}\.[0-9]{1,2}.[0-9]{1} ]]; then
+    VAULT_VERSION="web-v${VAULT_VERSION}"
+elif [[ "${VAULT_VERSION}" =~ ^v20[0-9]{2}\.[0-9]{1,2}.[0-9]{1} ]]; then
+    VAULT_VERSION="web-${VAULT_VERSION}"
+fi
+echo "Using: '${VAULT_VERSION}' to checkout bitwarden/client."
+
 if [ ! -d "${VAULT_FOLDER}" ]; then
     # If this is the first time, clone the project
     git clone https://github.com/bitwarden/clients.git "${VAULT_FOLDER}"

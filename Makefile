@@ -4,7 +4,7 @@ SHELL := bash
 .DELETE_ON_ERROR:
 
 help:
-	@echo "Use either: clean, checkout, build, patch-web-vault, generate-patch, tar, or full"
+	@echo "Use either: clean, checkout, patch-web-vault, generate-patch, build, tar, or full"
 	@echo "Or for docker builds use: docker or docker-extract"
 .PHONY: help
 
