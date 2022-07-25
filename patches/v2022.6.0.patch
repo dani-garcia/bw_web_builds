@@ -82,7 +82,7 @@ index 47a0f433c..5c4de87bf 100644
 -        : "trashCleanupWarning"
 -    );
 +    this.trashCleanupWarning = this.i18nService.t("trashCleanupWarningSelfHosted");
- 
+
      this.route.queryParams.pipe(first()).subscribe(async (params) => {
        await this.syncService.fullSync(false);
 diff --git a/apps/web/src/app/modules/vault/modules/organization-vault/organization-vault.component.ts b/apps/web/src/app/modules/vault/modules/organization-vault/organization-vault.component.ts
@@ -91,7 +91,7 @@ index 451e9ca50..0ce25610e 100644
 +++ b/apps/web/src/app/modules/vault/modules/organization-vault/organization-vault.component.ts
 @@ -81,11 +81,7 @@ export class OrganizationVaultComponent implements OnInit, OnDestroy {
    ) {}
- 
+
    ngOnInit() {
 -    this.trashCleanupWarning = this.i18nService.t(
 -      this.platformUtilsService.isSelfHost()
@@ -128,7 +128,7 @@ index eacfea977..c2f810338 100644
 +++ b/apps/web/src/app/services/init.service.ts
 @@ -36,11 +36,23 @@ export class InitService {
    ) {}
- 
+
    init() {
 +    function getBaseUrl() {
 +        // If the base URL is `https://vaultwarden.example.com/base/path/`,
@@ -141,16 +141,16 @@ index eacfea977..c2f810338 100644
 +        let baseUrl = window.location.href;
 +        baseUrl = baseUrl.replace(/#.*/, '');  // Strip off `#` and everything after.
 +        baseUrl = baseUrl.replace(/\/+$/, ''); // Trim any trailing `/` chars.
-+        return baseUrl;
++        return ":baseUrl";
 +    }
      return async () => {
        await this.stateService.init();
- 
+
 -      const urls = process.env.URLS as Urls;
 -      urls.base ??= this.win.location.origin;
 +      const urls = {base: getBaseUrl()};
        this.environmentService.setUrls(urls);
- 
+
        setTimeout(() => this.notificationsService.init(), 3000);
 diff --git a/apps/web/src/app/settings/settings.component.ts b/apps/web/src/app/settings/settings.component.ts
 index f0559b8dc..b728e3601 100644
@@ -180,7 +180,7 @@ index ae26862d0..69ff16a07 100644
 +    this.billing = null;
      this.loading = false;
    }
- 
+
 diff --git a/apps/web/src/app/vault/add-edit.component.html b/apps/web/src/app/vault/add-edit.component.html
 index 37410ea59..8c9e1a6f4 100644
 --- a/apps/web/src/app/vault/add-edit.component.html
@@ -259,17 +259,17 @@ index 755600a15..25f4561e1 100644
 +++ b/apps/web/src/services/webPlatformUtils.service.ts
 @@ -240,11 +240,11 @@ export class WebPlatformUtilsService implements PlatformUtilsService {
    }
- 
+
    isDev(): boolean {
 -    return process.env.NODE_ENV === "development";
 +    return false;
    }
- 
+
    isSelfHost(): boolean {
 -    return process.env.ENV.toString() === "selfhosted";
 +    return false;
    }
- 
+
    copyToClipboard(text: string, options?: any): void | boolean {
 diff --git a/libs/angular/src/components/register.component.ts b/libs/angular/src/components/register.component.ts
 index d4b99e17a..c16262007 100644
@@ -282,7 +282,7 @@ index d4b99e17a..c16262007 100644
 -  showTerms = true;
 +  showTerms = false;
    acceptPolicies = false;
- 
+
    protected successRoute = "login";
 @@ -47,7 +47,7 @@ export class RegisterComponent extends CaptchaProtectedComponent implements OnIn
      protected logService: LogService
@@ -291,11 +291,11 @@ index d4b99e17a..c16262007 100644
 -    this.showTerms = !platformUtilsService.isSelfHost();
 +    this.showTerms = false;
    }
- 
+
    async ngOnInit() {
 @@ -85,6 +85,15 @@ export class RegisterComponent extends CaptchaProtectedComponent implements OnIn
    }
- 
+
    async submit() {
 +    if (typeof crypto.subtle === 'undefined') {
 +      this.platformUtilsService.showToast(

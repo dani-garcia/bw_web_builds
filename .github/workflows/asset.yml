@@ -1,0 +1,73 @@
+name: Asset
+
+on:
+  workflow_dispatch:
+    inputs:
+      vaultGitSha:
+        description: bitwarden git hash
+        default: c0cb88a733c677fae84e517fbc63d7d16cb912c2
+        required: true
+      vaultVersion:
+        description: patch version
+        default: v2022.6.0.patch
+        required: true
+jobs:
+  native-build:
+    runs-on: ubuntu-latest
+    env:
+      VAULT_GIT_SHA: ${{ github.event.inputs.vaultGitSha}}
+      VAULT_VERSION: ${{ github.event.inputs.vaultVersion }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 16
+
+      - name: prepare bitwarden web vault code
+        run: |
+          git clone https://github.com/bitwarden/clients.git vault
+          cd vault
+          git -c advice.detachedHead=false checkout "${{ env.VAULT_GIT_SHA}}"
+
+      - name: Get npm cache directory
+        id: npm-cache-dir
+        run: |
+          echo "::set-output name=dir::$(npm config get cache)"
+
+      - name: Cache node modules
+        uses: actions/cache@v3
+        with:
+          # caching node_modules
+          path: ${{ steps.npm-cache-dir.outputs.dir }}
+          key: ${{ runner.os }}-build-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-build-
+            ${{ runner.os }}-
+
+      - name: add custom url to patch
+        run: |
+          sed -i "s;:baseUrl;${{secrets.GATEWAY_API}};gI" patches/v2022.6.0.patch
+
+      - name: build bitwarden web vault
+        run: |
+          cd vault
+          cp ../scripts/apply_patches.sh apply_patches.sh
+          bash apply_patches.sh
+          npm ci 
+          npm audit fix || true
+          cd apps/web
+          npm run dist:oss:selfhost
+
+      - name: copy build to dist
+        run: |
+          mkdir -p dist
+          mv vault/apps/web/build/* dist/
+
+      - uses: amondnet/vercel-action@v20 #deploy
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }} # Required
+          vercel-org-id: ${{ secrets.ORG_ID}}  #Required
+          vercel-project-id: ${{ secrets.PROJECT_ID}} #Required
+          vercel-args: '--prod'
