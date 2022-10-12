@@ -1,0 +1,301 @@
+diff --git a/apps/web/src/404.html b/apps/web/src/404.html
+index 6cf5e363d..54d11495c 100644
+--- a/apps/web/src/404.html
++++ b/apps/web/src/404.html
+@@ -42,11 +42,10 @@
+         </a>
+       </p>
+       <p>
+-        You can <a href="/">return to the web vault</a>, check our
+-        <a href="https://status.bitwarden.com/">status page</a> or
+-        <a href="https://bitwarden.com/contact/">contact us</a>.
++        You can <a href="/">return to the web vault</a>, or
++        <a href="https://github.com/dani-garcia/vaultwarden">contact us</a>.
+       </p>
+     </div>
+-    <div class="container footer text-muted content">© Copyright 2022 Bitwarden, Inc.</div>
++    <div class="container footer text-muted content">© Copyright 2022 Bitwarden, Inc. (Powered by Vaultwarden)</div>
+   </body>
+ </html>
+diff --git a/apps/web/src/app/app.component.ts b/apps/web/src/app/app.component.ts
+index b1700a855..9f4145f26 100644
+--- a/apps/web/src/app/app.component.ts
++++ b/apps/web/src/app/app.component.ts
+@@ -170,6 +170,10 @@ export class AppComponent implements OnDestroy, OnInit {
+             break;
+           }
+           case "showToast":
++            if (typeof message.text === "string" && typeof crypto.subtle === 'undefined') {
++              message.title="This browser requires HTTPS to use the web vault";
++              message.text="Check the Vaultwarden wiki for details on how to enable it";
++            }
+             this.showToast(message);
+             break;
+           case "setFullWidth":
+diff --git a/apps/web/src/app/core/init.service.ts b/apps/web/src/app/core/init.service.ts
+index 0f61efb67..da38c03f4 100644
+--- a/apps/web/src/app/core/init.service.ts
++++ b/apps/web/src/app/core/init.service.ts
+@@ -37,11 +37,23 @@ export class InitService {
+   ) {}
+ 
+   init() {
++    function getBaseUrl() {
++      // If the base URL is `https://vaultwarden.example.com/base/path/`,
++      // `window.location.href` should have one of the following forms:
++      //
++      // - `https://vaultwarden.example.com/base/path/`
++      // - `https://vaultwarden.example.com/base/path/#/some/route[?queryParam=...]`
++      //
++      // We want to get to just `https://vaultwarden.example.com/base/path`.
++      let baseUrl = window.location.href;
++      baseUrl = baseUrl.replace(/#.*/, '');  // Strip off `#` and everything after.
++      baseUrl = baseUrl.replace(/\/+$/, ''); // Trim any trailing `/` chars.
++      return baseUrl;
++    }
+     return async () => {
+       await this.stateService.init();
+ 
+-      const urls = process.env.URLS as Urls;
+-      urls.base ??= this.win.location.origin;
++      const urls = {base: getBaseUrl()};
+       this.environmentService.setUrls(urls);
+ 
+       setTimeout(() => this.notificationsService.init(), 3000);
+diff --git a/apps/web/src/app/core/web-platform-utils.service.ts b/apps/web/src/app/core/web-platform-utils.service.ts
+index 115d53401..e62638e35 100644
+--- a/apps/web/src/app/core/web-platform-utils.service.ts
++++ b/apps/web/src/app/core/web-platform-utils.service.ts
+@@ -188,11 +188,11 @@ export class WebPlatformUtilsService implements PlatformUtilsService {
+   }
+ 
+   isDev(): boolean {
+-    return process.env.NODE_ENV === "development";
++    return false;
+   }
+ 
+   isSelfHost(): boolean {
+-    return process.env.ENV.toString() === "selfhosted";
++    return false;
+   }
+ 
+   copyToClipboard(text: string, options?: any): void | boolean {
+diff --git a/apps/web/src/app/layouts/footer.component.html b/apps/web/src/app/layouts/footer.component.html
+index 98836bfd5..a5356be72 100644
+--- a/apps/web/src/app/layouts/footer.component.html
++++ b/apps/web/src/app/layouts/footer.component.html
+@@ -1,6 +1,6 @@
+ <div class="container footer text-muted">
+   <div class="row">
+-    <div class="col">&copy; {{ year }} Bitwarden Inc.</div>
++    <div class="col">&copy; {{ year }} Bitwarden Inc. (Powered by Vaultwarden)</div>
+     <div class="col text-center"></div>
+     <div class="col text-right">
+       {{ "versionNumber" | i18n: version }}
+diff --git a/apps/web/src/app/layouts/frontend-layout.component.html b/apps/web/src/app/layouts/frontend-layout.component.html
+index d737bc9f0..8db146fe9 100644
+--- a/apps/web/src/app/layouts/frontend-layout.component.html
++++ b/apps/web/src/app/layouts/frontend-layout.component.html
+@@ -1,5 +1,5 @@
+ <router-outlet></router-outlet>
+ <div class="container my-5 text-muted text-center">
+-  &copy; {{ year }} Bitwarden Inc. <br />
++  &copy; {{ year }} Bitwarden Inc. (Powered by Vaultwarden)<br />
+   {{ "versionNumber" | i18n: version }}
+ </div>
+diff --git a/apps/web/src/app/layouts/navbar.component.html b/apps/web/src/app/layouts/navbar.component.html
+index ee428cb5e..4294ebd16 100644
+--- a/apps/web/src/app/layouts/navbar.component.html
++++ b/apps/web/src/app/layouts/navbar.component.html
+@@ -69,7 +69,7 @@
+               <i class="bwi bwi-fw bwi-user" aria-hidden="true"></i>
+               {{ "accountSettings" | i18n }}
+             </a>
+-            <a bitMenuItem href="https://bitwarden.com/help/" target="_blank" rel="noopener">
++            <a bitMenuItem href="https://github.com/dani-garcia/vaultwarden/" target="_blank" rel="noopener">
+               <i class="bwi bwi-fw bwi-question-circle" aria-hidden="true"></i>
+               {{ "getHelp" | i18n }}
+             </a>
+diff --git a/apps/web/src/app/organizations/vault/vault.component.ts b/apps/web/src/app/organizations/vault/vault.component.ts
+index f9c378b63..67d00e30b 100644
+--- a/apps/web/src/app/organizations/vault/vault.component.ts
++++ b/apps/web/src/app/organizations/vault/vault.component.ts
+@@ -81,11 +81,7 @@ export class VaultComponent implements OnInit, OnDestroy {
+   ) {}
+ 
+   ngOnInit() {
+-    this.trashCleanupWarning = this.i18nService.t(
+-      this.platformUtilsService.isSelfHost()
+-        ? "trashCleanupWarningSelfHosted"
+-        : "trashCleanupWarning"
+-    );
++    this.trashCleanupWarning = this.i18nService.t("trashCleanupWarningSelfHosted");
+     // eslint-disable-next-line rxjs-angular/prefer-takeuntil, rxjs/no-async-subscribe
+     this.route.parent.params.subscribe(async (params: any) => {
+       this.organization = await this.organizationService.get(params.organizationId);
+diff --git a/apps/web/src/app/send/access.component.html b/apps/web/src/app/send/access.component.html
+index b58186102..bfcbc352b 100644
+--- a/apps/web/src/app/send/access.component.html
++++ b/apps/web/src/app/send/access.component.html
+@@ -137,15 +137,6 @@
+     <div class="col-12 text-center mt-5 text-muted">
+       <p class="mb-0">
+         {{ "sendAccessTaglineProductDesc" | i18n }}<br />
+-        {{ "sendAccessTaglineLearnMore" | i18n }}
+-        <a href="https://www.bitwarden.com/products/send?source=web-vault" target="_blank"
+-          >Bitwarden Send</a
+-        >
+-        {{ "sendAccessTaglineOr" | i18n }}
+-        <a href="https://vault.bitwarden.com/#/register" target="_blank">{{
+-          "sendAccessTaglineSignUp" | i18n
+-        }}</a>
+-        {{ "sendAccessTaglineTryToday" | i18n }}
+       </p>
+     </div>
+   </div>
+diff --git a/apps/web/src/app/settings/settings.component.ts b/apps/web/src/app/settings/settings.component.ts
+index 6e9fa21b1..75e7859ed 100644
+--- a/apps/web/src/app/settings/settings.component.ts
++++ b/apps/web/src/app/settings/settings.component.ts
+@@ -55,10 +55,6 @@ export class SettingsComponent implements OnInit, OnDestroy {
+     this.hasFamilySponsorshipAvailable = await this.organizationService.canManageSponsorships();
+     const hasPremiumFromOrg = await this.stateService.getHasPremiumFromOrganization();
+     let billing = null;
+-    if (!this.selfHosted) {
+-      billing = await this.apiService.getUserBillingHistory();
+-    }
+-    this.hideSubscription =
+-      !this.premium && hasPremiumFromOrg && (this.selfHosted || billing?.hasNoHistory);
++    this.hideSubscription = true;
+   }
+ }
+diff --git a/apps/web/src/app/settings/user-billing-history.component.ts b/apps/web/src/app/settings/user-billing-history.component.ts
+index dfc3216d2..f4693577b 100644
+--- a/apps/web/src/app/settings/user-billing-history.component.ts
++++ b/apps/web/src/app/settings/user-billing-history.component.ts
+@@ -39,7 +39,7 @@ export class UserBillingHistoryComponent implements OnInit {
+       return;
+     }
+     this.loading = true;
+-    this.billing = await this.apiService.getUserBillingHistory();
++    this.billing = null;
+     this.loading = false;
+   }
+ 
+diff --git a/apps/web/src/app/vault/vault.component.ts b/apps/web/src/app/vault/vault.component.ts
+index c9d6b5903..3fccac199 100644
+--- a/apps/web/src/app/vault/vault.component.ts
++++ b/apps/web/src/app/vault/vault.component.ts
+@@ -91,11 +91,7 @@ export class VaultComponent implements OnInit, OnDestroy {
+   async ngOnInit() {
+     this.showVerifyEmail = !(await this.tokenService.getEmailVerified());
+     this.showBrowserOutdated = window.navigator.userAgent.indexOf("MSIE") !== -1;
+-    this.trashCleanupWarning = this.i18nService.t(
+-      this.platformUtilsService.isSelfHost()
+-        ? "trashCleanupWarningSelfHosted"
+-        : "trashCleanupWarning"
+-    );
++    this.trashCleanupWarning = this.i18nService.t("trashCleanupWarningSelfHosted");
+ 
+     // eslint-disable-next-line rxjs-angular/prefer-takeuntil, rxjs/no-async-subscribe
+     this.route.queryParams.pipe(first()).subscribe(async (params) => {
+diff --git a/apps/web/src/scss/styles.scss b/apps/web/src/scss/styles.scss
+index dc1c740b4..1665df542 100644
+--- a/apps/web/src/scss/styles.scss
++++ b/apps/web/src/scss/styles.scss
+@@ -57,3 +57,57 @@
+ @import "./tables";
+ @import "./toasts";
+ @import "./vault-filters";
++
++/**** START Vaultwarden CHANGES ****/
++/* This combines all selectors extending it into one */
++%vw-hide { display: none !important; }
++
++/* This allows searching for the combined style in the browsers dev-tools (look into the head tag) */
++#vw-hide,head { @extend %vw-hide; }
++
++/* Hide any link pointing to billing */
++a[href$="/settings/billing"] { @extend %vw-hide; }
++
++/* Hide any link pointing to subscriptions */
++a[href$="/settings/subscription"] { @extend %vw-hide; }
++
++/* Hide any link pointing to Sponsored Families */
++a[href$="/settings/sponsored-families"] { @extend %vw-hide; }
++
++/* Hide the `Enterprise Single Sign-On` button on the login page */
++a[href$="/sso"] { @extend %vw-hide; }
++
++/* Hide Two-Factor menu in Organization settings */
++app-org-settings a[href$="/settings/two-factor"] { @extend %vw-hide; }
++
++/* Hide Business Owned checkbox */
++app-org-info > form:nth-child(1) > div:nth-child(3) { @extend %vw-hide; }
++
++/* Hide organization plans */
++app-organization-plans > form > div.form-check { @extend %vw-hide; }
++app-organization-plans > form > h2.mt-5 { @extend %vw-hide; }
++
++/* Hide the `This account is owned by a business` checkbox and label */
++#ownedBusiness, label[for^=ownedBusiness] { @extend %vw-hide; }
++
++/* Hide External Id field for Collections */
++app-collection-add-edit form div.form-group:nth-child(2) { @extend %vw-hide; }
++
++/* Hide the radio button and label for the `Custom` org user type */
++#userTypeCustom, label[for^=userTypeCustom] { @extend %vw-hide; }
++
++/* Hide Business Name and Identifier */
++app-org-account form div.form-group:nth-child(3) { @extend %vw-hide; }
++app-org-account form div.form-group:nth-child(4) { @extend %vw-hide; }
++
++/* Hide Tax Info and Form in Organization settings */
++app-org-account > div.secondary-header:nth-child(3) { @extend %vw-hide; }
++app-org-account > div.secondary-header:nth-child(3) + p { @extend %vw-hide; }
++app-org-account > div.secondary-header:nth-child(3) + p + form { @extend %vw-hide; }
++
++/* Hide Firefox Relay - It is CORS protected for SaaS only */
++#forwardtype_firefoxrelay, label[for^=forwardtype_firefoxrelay] { @extend %vw-hide; }
++
++/* Hide Device Verification form at the Two Step Login screen */
++app-security > app-two-factor-setup > form { @extend %vw-hide; }
++/**** END Vaultwarden CHANGES ****/
+diff --git a/libs/angular/src/components/register.component.ts b/libs/angular/src/components/register.component.ts
+index 5d0e708d8..9e45a611e 100644
+--- a/libs/angular/src/components/register.component.ts
++++ b/libs/angular/src/components/register.component.ts
+@@ -35,7 +35,7 @@ export class RegisterComponent extends CaptchaProtectedComponent implements OnIn
+   showPassword = false;
+   formPromise: Promise<RegisterResponse>;
+   referenceData: ReferenceEventRequest;
+-  showTerms = true;
++  showTerms = false;
+   showErrorSummary = false;
+   passwordStrengthResult: any;
+   color: string;
+@@ -88,7 +88,7 @@ export class RegisterComponent extends CaptchaProtectedComponent implements OnIn
+     protected logService: LogService
+   ) {
+     super(environmentService, i18nService, platformUtilsService);
+-    this.showTerms = !platformUtilsService.isSelfHost();
++    this.showTerms = false;
+   }
+ 
+   async ngOnInit() {
+@@ -96,6 +96,15 @@ export class RegisterComponent extends CaptchaProtectedComponent implements OnIn
+   }
+ 
+   async submit(showToast = true) {
++    if (typeof crypto.subtle === 'undefined') {
++      this.platformUtilsService.showToast(
++        "error",
++        "This browser requires HTTPS to use the web vault",
++        "Check the Vaultwarden wiki for details on how to enable it"
++      );
++      return;
++    }
++
+     let email = this.formGroup.get("email")?.value;
+     email = email.trim().toLowerCase();
+     let name = this.formGroup.get("name")?.value;
