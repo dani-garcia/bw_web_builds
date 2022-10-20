@@ -200,10 +200,10 @@ index c9d6b5903..3fccac199 100644
      // eslint-disable-next-line rxjs-angular/prefer-takeuntil, rxjs/no-async-subscribe
      this.route.queryParams.pipe(first()).subscribe(async (params) => {
 diff --git a/apps/web/src/scss/styles.scss b/apps/web/src/scss/styles.scss
-index dc1c740b4..1665df542 100644
+index dc1c740b4..d818007fa 100644
 --- a/apps/web/src/scss/styles.scss
 +++ b/apps/web/src/scss/styles.scss
-@@ -57,3 +57,57 @@
+@@ -57,3 +57,60 @@
  @import "./tables";
  @import "./toasts";
  @import "./vault-filters";
@@ -257,6 +257,9 @@ index dc1c740b4..1665df542 100644
 +
 +/* Hide Firefox Relay - It is CORS protected for SaaS only */
 +#forwardtype_firefoxrelay, label[for^=forwardtype_firefoxrelay] { @extend %vw-hide; }
++
++/* Hide DuckDuckGo - It does not work for self-hosted either. */
++#forwardtype_duckduckgo, label[for^=forwardtype_duckduckgo] { @extend %vw-hide; }
 +
 +/* Hide Device Verification form at the Two Step Login screen */
 +app-security > app-two-factor-setup > form { @extend %vw-hide; }
