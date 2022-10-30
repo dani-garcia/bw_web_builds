@@ -28,7 +28,7 @@ generate-patch:
 
 build:
 	./scripts/build_web_vault.sh
-.PHONY: checkout
+.PHONY: build
 
 tar:
 	./scripts/tar_web_vault.sh
