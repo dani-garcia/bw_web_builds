@@ -35,7 +35,7 @@ else
     # If there already is a checked-out repo, lets clean it up first.
     pushd "${VAULT_FOLDER}"
         # Stash current changes if there are any, we don't want to loose our work if we had some
-        git stash --all --quiet &> /dev/null || true
+        git stash --include-untracked --quiet &> /dev/null || true
         # Checkout the master repo first
         git checkout master
         git reset --hard
