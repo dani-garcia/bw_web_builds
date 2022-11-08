@@ -116,6 +116,32 @@ index ee428cb5e..4294ebd16 100644
                <i class="bwi bwi-fw bwi-question-circle" aria-hidden="true"></i>
                {{ "getHelp" | i18n }}
              </a>
+diff --git a/apps/web/src/app/organizations/create/organization-information.component.html b/apps/web/src/app/organizations/create/organization-information.component.html
+index 6029cfd83..04324b7d1 100644
+--- a/apps/web/src/app/organizations/create/organization-information.component.html
++++ b/apps/web/src/app/organizations/create/organization-information.component.html
+@@ -12,7 +12,7 @@
+       <input bitInput type="text" formControlName="name" />
+     </bit-form-field>
+     <bit-form-field class="tw-w-1/2">
+-      <bit-label>{{ "billingEmail" | i18n }}</bit-label>
++      <bit-label>{{ "email" | i18n }}</bit-label>
+       <input bitInput type="email" formControlName="billingEmail" />
+     </bit-form-field>
+     <bit-form-field class="tw-w-1/2" *ngIf="isProvider">
+diff --git a/apps/web/src/app/organizations/settings/account.component.html b/apps/web/src/app/organizations/settings/account.component.html
+index 1f2e145ae..dbc4b593d 100644
+--- a/apps/web/src/app/organizations/settings/account.component.html
++++ b/apps/web/src/app/organizations/settings/account.component.html
+@@ -30,7 +30,7 @@
+         />
+       </div>
+       <div class="form-group">
+-        <label for="billingEmail">{{ "billingEmail" | i18n }}</label>
++        <label for="billingEmail">{{ "email" | i18n }}</label>
+         <input
+           id="billingEmail"
+           class="form-control"
 diff --git a/apps/web/src/app/organizations/vault/vault.component.ts b/apps/web/src/app/organizations/vault/vault.component.ts
 index f9c378b63..67d00e30b 100644
 --- a/apps/web/src/app/organizations/vault/vault.component.ts
