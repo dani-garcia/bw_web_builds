@@ -31,10 +31,11 @@ USER node
 # Using https://github.com/bitwarden/clients/releases/tag/web-v2022.10.2
 ARG VAULT_VERSION=703860f1ac7bad2dfa9a98640a568db26fdcf5ed
 
-RUN git clone https://github.com/bitwarden/clients.git /vault
 WORKDIR /vault
-
-RUN git -c advice.detachedHead=false checkout "${VAULT_VERSION}"
+RUN git init
+RUN git remote add origin https://github.com/bitwarden/clients.git
+RUN git fetch --depth 1 origin "${VAULT_VERSION}"
+RUN git -c advice.detachedHead=false checkout FETCH_HEAD
 
 COPY --chown=node:node patches /patches
 COPY --chown=node:node scripts/apply_patches.sh /apply_patches.sh
