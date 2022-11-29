@@ -28,8 +28,8 @@ USER node
 # Can be a tag, release, but prefer a commit hash because it's not changeable
 # https://github.com/bitwarden/clients/commit/${VAULT_VERSION}
 #
-# Using https://github.com/bitwarden/clients/releases/tag/web-v2022.10.2
-ARG VAULT_VERSION=703860f1ac7bad2dfa9a98640a568db26fdcf5ed
+# Using https://github.com/bitwarden/clients/releases/tag/web-v2022.11.1
+ARG VAULT_VERSION=eea3ddcaf2c5fc1c3ed3d405367cfed2d0789736
 
 WORKDIR /vault
 RUN git init
