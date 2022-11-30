@@ -14,6 +14,12 @@ if [[ -z ${PATCH_NAME} ]]; then
     fi
 fi
 
+echo "Patching images"
+cp -vf ../resources/logo-dark@2x.png ./apps/web/src/images/logo-dark@2x.png
+cp -vf ../resources/logo-white@2x.png ./apps/web/src/images/logo-white@2x.png
+cp -vf ../resources/icon-white.png ./apps/web/src/images/icon-white.png
+
 echo "Using patch: ${PATCH_NAME}"
 git apply "../patches/${PATCH_NAME}" --reject
+
 echo "Patching successful!"
