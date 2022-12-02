@@ -1,5 +1,5 @@
 diff --git a/apps/web/src/404.html b/apps/web/src/404.html
-index 6cf5e363d..275c34f72 100644
+index 6cf5e363d..da8a047f6 100644
 --- a/apps/web/src/404.html
 +++ b/apps/web/src/404.html
 @@ -28,7 +28,7 @@
@@ -7,7 +7,7 @@ index 6cf5e363d..275c34f72 100644
          <div class="row align-items-center">
            <div class="col brand">
 -            <i class="bwi bwi-shield"></i>&nbsp; <strong>bit</strong>warden
-+            <i class="bwi bwi-shield"></i>&nbsp; <strong>Vault</strong>warden
++            <strong><i class="bwi bwi-shield">V</i>ault</strong>warden
            </div>
          </div>
        </div>
@@ -26,6 +26,26 @@ index 6cf5e363d..275c34f72 100644
 +    <div class="container footer text-muted content">Vaultwarden (unofficial Bitwarden&reg; server)</div>
    </body>
  </html>
+diff --git a/apps/web/src/404/styles.css b/apps/web/src/404/styles.css
+index 7dec3947a..da633bcfa 100644
+--- a/apps/web/src/404/styles.css
++++ b/apps/web/src/404/styles.css
+@@ -144,8 +144,14 @@ h2 {
+   /* Better Font Rendering */
+   -webkit-font-smoothing: antialiased;
+   -moz-osx-font-smoothing: grayscale;
++  vertical-align: middle;
++  font-size: 0;
+ }
+ 
+ .bwi-shield:before {
+-  content: "\e932";
++  content: '';
++  width: 32px;
++  height: 32px;
++  display: inline-block;
++  background-image: url(../images/icon-white.png);
+ }
 diff --git a/apps/web/src/app/app.component.ts b/apps/web/src/app/app.component.ts
 index 9bd0fda6f..4ef20fa5c 100644
 --- a/apps/web/src/app/app.component.ts
@@ -71,6 +91,19 @@ index 75089529f..969d81a8a 100644
        this.environmentService.setUrls(urls);
  
        setTimeout(() => this.notificationsService.init(), 3000);
+diff --git a/apps/web/src/app/core/router.service.ts b/apps/web/src/app/core/router.service.ts
+index aa9041875..680936375 100644
+--- a/apps/web/src/app/core/router.service.ts
++++ b/apps/web/src/app/core/router.service.ts
+@@ -23,7 +23,7 @@ export class RouterService {
+       .subscribe((event: NavigationEnd) => {
+         this.currentUrl = event.url;
+ 
+-        let title = i18nService.t("pageTitle", "Bitwarden");
++        let title = i18nService.t("pageTitle", "Vaultwarden");
+         let child = this.activatedRoute.firstChild;
+         while (child.firstChild) {
+           child = child.firstChild;
 diff --git a/apps/web/src/app/core/web-platform-utils.service.ts b/apps/web/src/app/core/web-platform-utils.service.ts
 index 115d53401..e62638e35 100644
 --- a/apps/web/src/app/core/web-platform-utils.service.ts
@@ -113,9 +146,17 @@ index d737bc9f0..6a312c0b1 100644
    {{ "versionNumber" | i18n: version }}
  </div>
 diff --git a/apps/web/src/app/layouts/navbar.component.html b/apps/web/src/app/layouts/navbar.component.html
-index b7e5a69fb..2a0d9fc8b 100644
+index b7e5a69fb..ed0df9e29 100644
 --- a/apps/web/src/app/layouts/navbar.component.html
 +++ b/apps/web/src/app/layouts/navbar.component.html
+@@ -1,6 +1,6 @@
+ <nav class="navbar navbar-expand navbar-dark" [ngClass]="{ 'nav-background-alt': selfHosted }">
+   <div class="container">
+-    <a class="navbar-brand" routerLink="/" appA11yTitle="{{ 'pageTitle' | i18n: 'Bitwarden' }}">
++    <a class="navbar-brand" routerLink="/" appA11yTitle="{{ 'pageTitle' | i18n: 'Vaultwarden' }}">
+       <i class="bwi bwi-shield" aria-hidden="true"></i>
+     </a>
+     <div class="collapse navbar-collapse">
 @@ -67,7 +67,7 @@
                <i class="bwi bwi-fw bwi-user" aria-hidden="true"></i>
                {{ "accountSettings" | i18n }}

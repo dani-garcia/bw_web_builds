@@ -28,6 +28,7 @@ if [ "$(git status --porcelain | wc -l)" -ge 1 ]; then
       ':!apps/web/src/images/logo-dark@2x.png' \
       ':!apps/web/src/images/logo-white@2x.png' \
       ':!apps/web/src/images/icon-white.png' \
+      ':!apps/web/src/images/404.png' \
       > "../patches/${PATCH_FILENAME}"
     echo "Patch has been created here: patches/${PATCH_FILENAME}"
 else

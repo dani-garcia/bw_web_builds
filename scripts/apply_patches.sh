@@ -18,6 +18,7 @@ echo "Patching images"
 cp -vf ../resources/logo-dark@2x.png ./apps/web/src/images/logo-dark@2x.png
 cp -vf ../resources/logo-white@2x.png ./apps/web/src/images/logo-white@2x.png
 cp -vf ../resources/icon-white.png ./apps/web/src/images/icon-white.png
+cp -vf ../resources/404.png ./apps/web/src/images/404.png
 
 echo "Using patch: ${PATCH_NAME}"
 git apply "../patches/${PATCH_NAME}" --reject
