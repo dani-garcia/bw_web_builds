@@ -28,6 +28,13 @@ if [ "$(git status --porcelain | wc -l)" -ge 1 ]; then
       ':!apps/web/src/images/logo-dark@2x.png' \
       ':!apps/web/src/images/logo-white@2x.png' \
       ':!apps/web/src/images/icon-white.png' \
+      ':!apps/web/src/images/icons/android-chrome-192x192.png' \
+      ':!apps/web/src/images/icons/android-chrome-512x512.png' \
+      ':!apps/web/src/images/icons/apple-touch-icon.png' \
+      ':!apps/web/src/images/icons/favicon-16x16.png' \
+      ':!apps/web/src/images/icons/favicon-32x32.png' \
+      ':!apps/web/src/images/icons/mstile-150x150.png' \
+      ':!apps/web/src/images/icons/safari-pinned-tab.svg' \
       > "../patches/${PATCH_FILENAME}"
     echo "Patch has been created here: patches/${PATCH_FILENAME}"
 else

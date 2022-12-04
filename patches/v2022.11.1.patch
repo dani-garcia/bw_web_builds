@@ -71,6 +71,19 @@ index 75089529f..969d81a8a 100644
        this.environmentService.setUrls(urls);
  
        setTimeout(() => this.notificationsService.init(), 3000);
+diff --git a/apps/web/src/app/core/router.service.ts b/apps/web/src/app/core/router.service.ts
+index aa9041875..680936375 100644
+--- a/apps/web/src/app/core/router.service.ts
++++ b/apps/web/src/app/core/router.service.ts
+@@ -23,7 +23,7 @@ export class RouterService {
+       .subscribe((event: NavigationEnd) => {
+         this.currentUrl = event.url;
+ 
+-        let title = i18nService.t("pageTitle", "Bitwarden");
++        let title = i18nService.t("pageTitle", "Vaultwarden");
+         let child = this.activatedRoute.firstChild;
+         while (child.firstChild) {
+           child = child.firstChild;
 diff --git a/apps/web/src/app/core/web-platform-utils.service.ts b/apps/web/src/app/core/web-platform-utils.service.ts
 index 115d53401..e62638e35 100644
 --- a/apps/web/src/app/core/web-platform-utils.service.ts
@@ -113,9 +126,17 @@ index d737bc9f0..6a312c0b1 100644
    {{ "versionNumber" | i18n: version }}
  </div>
 diff --git a/apps/web/src/app/layouts/navbar.component.html b/apps/web/src/app/layouts/navbar.component.html
-index b7e5a69fb..2a0d9fc8b 100644
+index b7e5a69fb..ed0df9e29 100644
 --- a/apps/web/src/app/layouts/navbar.component.html
 +++ b/apps/web/src/app/layouts/navbar.component.html
+@@ -1,6 +1,6 @@
+ <nav class="navbar navbar-expand navbar-dark" [ngClass]="{ 'nav-background-alt': selfHosted }">
+   <div class="container">
+-    <a class="navbar-brand" routerLink="/" appA11yTitle="{{ 'pageTitle' | i18n: 'Bitwarden' }}">
++    <a class="navbar-brand" routerLink="/" appA11yTitle="{{ 'pageTitle' | i18n: 'Vaultwarden' }}">
+       <i class="bwi bwi-shield" aria-hidden="true"></i>
+     </a>
+     <div class="collapse navbar-collapse">
 @@ -67,7 +67,7 @@
                <i class="bwi bwi-fw bwi-user" aria-hidden="true"></i>
                {{ "accountSettings" | i18n }}
@@ -217,6 +238,24 @@ index 2a2fc4d27..26053e486 100644
 +    this.hideSubscription = true;
    }
  }
+diff --git a/apps/web/src/app/settings/two-factor-authenticator.component.ts b/apps/web/src/app/settings/two-factor-authenticator.component.ts
+index 652ee24a1..5a63562cc 100644
+--- a/apps/web/src/app/settings/two-factor-authenticator.component.ts
++++ b/apps/web/src/app/settings/two-factor-authenticator.component.ts
+@@ -98,11 +98,11 @@ export class TwoFactorAuthenticatorComponent
+       new window.QRious({
+         element: document.getElementById("qr"),
+         value:
+-          "otpauth://totp/Bitwarden:" +
++          "otpauth://totp/Vaultwarden:" +
+           encodeURIComponent(email) +
+           "?secret=" +
+           encodeURIComponent(this.key) +
+-          "&issuer=Bitwarden",
++          "&issuer=Vaultwarden",
+         size: 160,
+       });
+     }, 100);
 diff --git a/apps/web/src/app/vault/vault.component.ts b/apps/web/src/app/vault/vault.component.ts
 index 9f9c0d378..fcb85250b 100644
 --- a/apps/web/src/app/vault/vault.component.ts
@@ -234,6 +273,39 @@ index 9f9c0d378..fcb85250b 100644
  
      // eslint-disable-next-line rxjs-angular/prefer-takeuntil, rxjs/no-async-subscribe
      this.route.queryParams.pipe(first()).subscribe(async (params) => {
+diff --git a/apps/web/src/index.html b/apps/web/src/index.html
+index 63d4e72c0..68b6ada00 100644
+--- a/apps/web/src/index.html
++++ b/apps/web/src/index.html
+@@ -5,7 +5,7 @@
+     <meta name="viewport" content="width=1010" />
+     <meta name="theme-color" content="#175DDC" />
+ 
+-    <title page-title>Bitwarden Web Vault</title>
++    <title page-title>Vaultwarden Web Vault</title>
+ 
+     <link rel="apple-touch-icon" sizes="180x180" href="images/icons/apple-touch-icon.png" />
+     <link rel="icon" type="image/png" sizes="32x32" href="images/icons/favicon-32x32.png" />
+diff --git a/apps/web/src/manifest.json b/apps/web/src/manifest.json
+index 92a1204c6..5a10dc9ae 100644
+--- a/apps/web/src/manifest.json
++++ b/apps/web/src/manifest.json
+@@ -1,5 +1,5 @@
+ {
+-  "name": "Bitwarden Vault",
++  "name": "Vaultwarden Web Vault",
+   "icons": [
+     {
+       "src": "images/icons/android-chrome-192x192.png",
+@@ -12,6 +12,6 @@
+       "type": "image/png"
+     }
+   ],
+-  "theme_color": "#175DDC",
+-  "background_color": "#175DDC"
++  "theme_color": "#ffffff",
++  "background_color": "#ffffff"
+ }
 diff --git a/apps/web/src/scss/styles.scss b/apps/web/src/scss/styles.scss
 index 0003f521c..41d6fca76 100644
 --- a/apps/web/src/scss/styles.scss
