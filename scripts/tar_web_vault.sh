@@ -18,13 +18,28 @@ mkdir -pv "${BASEDIR}/../${OUTPUT_FOLDER}"
 pushd "${VAULT_FOLDER}/apps/web"
 
 VAULT_VERSION=$(get_web_vault_version)
-OUTPUT_NAME="${OUTPUT_FOLDER}/bw_web_${VAULT_VERSION}"
+OUTPUT_NAME="${BASEDIR}/../${OUTPUT_FOLDER}/bw_web_${VAULT_VERSION}"
+DATE_FORMAT="${DATE_FORMAT:-%Y-%m-%dT%H:%M:%S%z}"
+
+# Preserve previous output
+if [[ -f "${OUTPUT_NAME}.tar.gz" ]];
+then
+    DATE_SUFFIX=$(date +"${DATE_FORMAT}" -r "${OUTPUT_NAME}.tar.gz")
+    mv "${OUTPUT_NAME}.tar.gz" "${OUTPUT_NAME}_${DATE_SUFFIX}.tar.gz"
+fi
+
+# Cleanup previous output directory
+if [[ -d "${OUTPUT_NAME}" ]];
+then
+    rm -rf "${OUTPUT_NAME}"
+fi
 
 mv build web-vault
 # Tar the web-vault
-tar -czvf "${BASEDIR}/../${OUTPUT_NAME}.tar.gz" web-vault --owner=0 --group=0
+tar -czvf "${OUTPUT_NAME}.tar.gz" web-vault --owner=0 --group=0
+
 # Copy the web-vault
-cp -dpr web-vault "${BASEDIR}/../${OUTPUT_NAME}"
+cp -dpr web-vault "${OUTPUT_NAME}"
 mv web-vault build
 
 popd
