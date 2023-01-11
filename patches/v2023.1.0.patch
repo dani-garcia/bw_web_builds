@@ -256,6 +256,19 @@ index 652ee24a1..5a63562cc 100644
          size: 160,
        });
      }, 100);
+diff --git a/apps/web/src/app/tools/generator.component.ts b/apps/web/src/app/tools/generator.component.ts
+index 6a5f00c19..1bf8daf31 100644
+--- a/apps/web/src/app/tools/generator.component.ts
++++ b/apps/web/src/app/tools/generator.component.ts
+@@ -40,7 +40,7 @@ export class GeneratorComponent extends BaseGeneratorComponent {
+       route,
+       window
+     );
+-    if (platformUtilsService.isSelfHost()) {
++    if (true) {
+       // Cannot use Firefox Relay on self hosted web vaults due to CORS issues with Firefox Relay API
+       this.forwardOptions.splice(
+         this.forwardOptions.findIndex((o) => o.value === "firefoxrelay"),
 diff --git a/apps/web/src/app/vault/vault.component.ts b/apps/web/src/app/vault/vault.component.ts
 index 4113b3ab2..7a8227232 100644
 --- a/apps/web/src/app/vault/vault.component.ts
@@ -358,12 +371,6 @@ index 0003f521c..41d6fca76 100644
 +app-org-account > div.secondary-header:nth-child(3) { @extend %vw-hide; }
 +app-org-account > div.secondary-header:nth-child(3) + p { @extend %vw-hide; }
 +app-org-account > div.secondary-header:nth-child(3) + p + form { @extend %vw-hide; }
-+
-+/* Hide Firefox Relay - It is CORS protected for SaaS only */
-+#forwardtype_firefoxrelay, label[for^=forwardtype_firefoxrelay] { @extend %vw-hide; }
-+
-+/* Hide DuckDuckGo - It does not work for self-hosted either. */
-+#forwardtype_duckduckgo, label[for^=forwardtype_duckduckgo] { @extend %vw-hide; }
 +
 +/* Hide Device Verification form at the Two Step Login screen */
 +app-security > app-two-factor-setup > form { @extend %vw-hide; }
