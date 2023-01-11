@@ -25,6 +25,7 @@ PATCH_FILENAME="${VAULT_VERSION}.patch"
 if [ "$(git status --porcelain | wc -l)" -ge 1 ]; then
     git --no-pager diff --no-color --minimal -- . \
       ':!package-lock.json' \
+      ':!apps/web/src/favicon.ico' \
       ':!apps/web/src/images/logo-dark@2x.png' \
       ':!apps/web/src/images/logo-white@2x.png' \
       ':!apps/web/src/images/icon-white.png' \
