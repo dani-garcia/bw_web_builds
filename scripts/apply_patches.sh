@@ -26,6 +26,7 @@ cp -vf ../resources/favicon-16x16.png ./apps/web/src/images/icons/favicon-16x16.
 cp -vf ../resources/favicon-32x32.png ./apps/web/src/images/icons/favicon-32x32.png
 cp -vf ../resources/mstile-150x150.png ./apps/web/src/images/icons/mstile-150x150.png
 cp -vf ../resources/safari-pinned-tab.svg ./apps/web/src/images/icons/safari-pinned-tab.svg
+cp -vf ../resources/favicon.ico ./apps/web/src/favicon.ico
 
 echo "Using patch: ${PATCH_NAME}"
 git apply "../patches/${PATCH_NAME}" --reject
