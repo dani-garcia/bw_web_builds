@@ -320,10 +320,10 @@ index 92a1204c6..5a10dc9ae 100644
 +  "background_color": "#ffffff"
  }
 diff --git a/apps/web/src/scss/styles.scss b/apps/web/src/scss/styles.scss
-index 0003f521c..41d6fca76 100644
+index 0003f521c..9470f0aa3 100644
 --- a/apps/web/src/scss/styles.scss
 +++ b/apps/web/src/scss/styles.scss
-@@ -58,3 +58,68 @@
+@@ -58,3 +58,62 @@
  @import "./tables";
  @import "./toasts";
  @import "./vault-filters";
