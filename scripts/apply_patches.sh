@@ -10,7 +10,7 @@ if [[ -z ${PATCH_NAME} ]]; then
     else
         echo "Patch file not found, using latest"
         # If not, use the latest one
-        PATCH_NAME="$(find ../patches -printf "%f\\n" | sort -V | tail -n1)"
+        PATCH_NAME="$(find ../patches -type f -print0 | xargs -0 basename -a | sort -V | tail -n1)"
     fi
 fi
 
