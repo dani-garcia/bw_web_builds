@@ -53,7 +53,7 @@ WORKDIR /vault/apps/web
 RUN npm run dist:oss:selfhost
 
 RUN printf '{"version":"%s"}' \
-      $(git -c 'versionsort.suffix=-' ls-remote --tags --sort='v:refname' https://github.com/dani-garcia/bw_web_builds.git 'v*' | tail -n1 | sed -E 's#.*?refs/tags/v##') \
+      $(git -c 'versionsort.suffix=-' ls-remote --tags --sort='v:refname' https://github.com/dani-garcia/bw_web_builds.git 'v*' | tail -n1 | grep -Eo '[^\/]*$') \
       > build/vw-version.json
 
 # Delete debugging map files, optional
