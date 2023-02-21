@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 set -o pipefail -o errexit
-BASEDIR=$(dirname "$(readlink -f "$0")")
+BASEDIR=$(RL=$(readlink -n "$0"); SP="${RL:-$0}"; dirname "$(cd "$(dirname "${SP}")"; pwd)/$(basename "${SP}")")
 
 # Error handling
 handle_error() {

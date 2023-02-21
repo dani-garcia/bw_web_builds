@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 set -o pipefail -o errexit
-BASEDIR=$(dirname "$(readlink -f "$0")")
+BASEDIR=$(RL=$(readlink -n "$0"); SP="${RL:-$0}"; dirname "$(cd "$(dirname "${SP}")"; pwd)/$(basename "${SP}")")
 
 # Error handling
 handle_error() {
@@ -24,7 +24,7 @@ DATE_FORMAT="${DATE_FORMAT:-%Y-%m-%dT%H:%M:%S%z}"
 # Preserve previous output
 if [[ -f "${OUTPUT_NAME}.tar.gz" ]];
 then
-    DATE_SUFFIX=$(date +"${DATE_FORMAT}" -r "${OUTPUT_NAME}.tar.gz")
+    DATE_SUFFIX=$(date -r "${OUTPUT_NAME}.tar.gz" +"${DATE_FORMAT}")
     mv "${OUTPUT_NAME}.tar.gz" "${OUTPUT_NAME}_${DATE_SUFFIX}.tar.gz"
 fi
 
@@ -36,10 +36,16 @@ fi
 
 mv build web-vault
 # Tar the web-vault
-tar -czvf "${OUTPUT_NAME}.tar.gz" web-vault --owner=0 --group=0
+# Check if we are using bsdtar or gnu-tar, bsdtar does not support --owner/--group
+if [[ "$(tar --version)" =~ .*bsdtar.* ]];
+then
+    tar -czvf "${OUTPUT_NAME}.tar.gz" web-vault
+else
+    tar -czvf "${OUTPUT_NAME}.tar.gz" web-vault --owner=0 --group=0
+fi
 
 # Copy the web-vault
-cp -dpr web-vault "${OUTPUT_NAME}"
+cp -pR web-vault "${OUTPUT_NAME}"
 mv web-vault build
 
 popd
