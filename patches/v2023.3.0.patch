@@ -326,7 +326,7 @@ index 92a1204c60..5a10dc9ae9 100644
 +  "background_color": "#ffffff"
  }
 diff --git a/apps/web/src/scss/styles.scss b/apps/web/src/scss/styles.scss
-index 0003f521c7..9470f0aa37 100644
+index 0003f521c7..32ecf5112e 100644
 --- a/apps/web/src/scss/styles.scss
 +++ b/apps/web/src/scss/styles.scss
 @@ -58,3 +58,62 @@
@@ -348,7 +348,7 @@ index 0003f521c7..9470f0aa37 100644
 +a[href$="/settings/sponsored-families"] { @extend %vw-hide; }
 +
 +/* Hide the `Enterprise Single Sign-On` button on the login page */
-+a[href$="/sso"] { @extend %vw-hide; }
++a[routerlink="/sso"] { @extend %vw-hide; }
 +
 +/* Hide Two-Factor menu in Organization settings */
 +app-org-settings a[href$="/settings/two-factor"] { @extend %vw-hide; }
