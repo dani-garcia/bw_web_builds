@@ -181,27 +181,31 @@ index ec829d71f..f3a362d0e 100644
  
    copyToClipboard(text: string, options?: any): void | boolean {
 diff --git a/apps/web/src/app/layouts/footer.component.html b/apps/web/src/app/layouts/footer.component.html
-index 8cacb4ceb..37d7cfb03 100644
+index 8cacb4ceb..eee272822 100644
 --- a/apps/web/src/app/layouts/footer.component.html
 +++ b/apps/web/src/app/layouts/footer.component.html
-@@ -1,6 +1,6 @@
+@@ -1,8 +1,9 @@
  <div class="container footer text-muted">
    <div class="row">
 -    <div class="col">&copy; {{ year }} Bitwarden Inc.</div>
 +    <div class="col">Vaultwarden (unofficial Bitwarden&reg; server)</div>
      <div class="col text-center"></div>
      <div class="col text-right">
++      ({{ "webVault" | i18n }})
        {{ "versionNumber" | i18n : version }}
+     </div>
+   </div>
 diff --git a/apps/web/src/app/layouts/frontend-layout.component.html b/apps/web/src/app/layouts/frontend-layout.component.html
-index 531e49dad..7b787bb90 100644
+index 531e49dad..a4b679278 100644
 --- a/apps/web/src/app/layouts/frontend-layout.component.html
 +++ b/apps/web/src/app/layouts/frontend-layout.component.html
-@@ -1,6 +1,6 @@
+@@ -1,6 +1,7 @@
  <router-outlet></router-outlet>
  <div class="container my-5 text-muted text-center">
    <environment-selector [hasFlags]="false"></environment-selector>
 -  &copy; {{ year }} Bitwarden Inc. <br />
 +  Vaultwarden (unofficial Bitwarden&reg; server)<br />
++  ({{ "webVault" | i18n }})
    {{ "versionNumber" | i18n : version }}
  </div>
 diff --git a/apps/web/src/app/layouts/navbar.component.html b/apps/web/src/app/layouts/navbar.component.html
