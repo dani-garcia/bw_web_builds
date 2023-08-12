@@ -53,18 +53,9 @@ index c7ac9910a..e03c8fedc 100644
        </bit-form-field>
        <bit-form-field>
 diff --git a/apps/web/src/app/app.component.ts b/apps/web/src/app/app.component.ts
-index 9a22ea20b..b18a9accd 100644
+index 9a22ea20b..4ce7fd4d8 100644
 --- a/apps/web/src/app/app.component.ts
 +++ b/apps/web/src/app/app.component.ts
-@@ -83,7 +83,7 @@ export class AppComponent implements OnDestroy, OnInit {
-     private keyConnectorService: KeyConnectorService,
-     private configService: ConfigServiceAbstraction,
-     private dialogService: DialogServiceAbstraction
--  ) {}
-+  ) { }
- 
-   ngOnInit() {
-     this.i18nService.locale$.pipe(takeUntil(this.destroy$)).subscribe((locale) => {
 @@ -184,6 +184,10 @@ export class AppComponent implements OnDestroy, OnInit {
              break;
            }
@@ -94,11 +85,151 @@ index 29cc6df15..3dbbfbd85 100644
          size: 160,
        });
      }, 100);
+diff --git a/apps/web/src/app/billing/organizations/organization-billing-history-view.component.ts b/apps/web/src/app/billing/organizations/organization-billing-history-view.component.ts
+index 22cea10ac..747f534bc 100644
+--- a/apps/web/src/app/billing/organizations/organization-billing-history-view.component.ts
++++ b/apps/web/src/app/billing/organizations/organization-billing-history-view.component.ts
+@@ -45,7 +45,7 @@ export class OrgBillingHistoryViewComponent implements OnInit, OnDestroy {
+       return;
+     }
+     this.loading = true;
+-    this.billing = await this.organizationApiService.getBilling(this.organizationId);
++    this.billing = null;
+     this.loading = false;
+   }
+ }
+diff --git a/apps/web/src/app/components/environment-selector/environment-selector.component.ts b/apps/web/src/app/components/environment-selector/environment-selector.component.ts
+index 9f736a72e..ee4832958 100644
+--- a/apps/web/src/app/components/environment-selector/environment-selector.component.ts
++++ b/apps/web/src/app/components/environment-selector/environment-selector.component.ts
+@@ -30,7 +30,7 @@ export class EnvironmentSelectorComponent implements OnInit {
+     this.isEuServer = domain.includes(RegionDomain.EU);
+     this.isUsServer = domain.includes(RegionDomain.US) || domain.includes(RegionDomain.USQA);
+     this.selectedRegionImageName = this.getRegionImage();
+-    this.showRegionSelector = !this.platformUtilsService.isSelfHost();
++    this.showRegionSelector = false;
+   }
+ 
+   getRegionImage(): string {
+diff --git a/apps/web/src/app/core/init.service.ts b/apps/web/src/app/core/init.service.ts
+index 4a2ef2f49..b9d6d90a7 100644
+--- a/apps/web/src/app/core/init.service.ts
++++ b/apps/web/src/app/core/init.service.ts
+@@ -37,14 +37,26 @@ export class InitService {
+   ) {}
+ 
+   init() {
++    function getBaseUrl() {
++      // If the base URL is `https://vaultwarden.example.com/base/path/`,
++      // `window.location.href` should have one of the following forms:
++      //
++      // - `https://vaultwarden.example.com/base/path/`
++      // - `https://vaultwarden.example.com/base/path/#/some/route[?queryParam=...]`
++      //
++      // We want to get to just `https://vaultwarden.example.com/base/path`.
++      let baseUrl = window.location.href;
++      baseUrl = baseUrl.replace(/#.*/, '');  // Strip off `#` and everything after.
++      baseUrl = baseUrl.replace(/\/+$/, ''); // Trim any trailing `/` chars.
++      return baseUrl;
++    }
+     return async () => {
+       // Workaround to ignore stateService.activeAccount until process.env.URLS are set
+       // TODO: Remove this when implementing ticket PM-2637
+       this.environmentService.initialized = false;
+       await this.stateService.init();
+ 
+-      const urls = process.env.URLS as Urls;
+-      urls.base ??= this.win.location.origin;
++      const urls = { base: getBaseUrl() };
+       this.environmentService.setUrls(urls);
+       this.environmentService.initialized = true;
+ 
+diff --git a/apps/web/src/app/core/router.service.ts b/apps/web/src/app/core/router.service.ts
+index 279b94d4e..6667b7b3b 100644
+--- a/apps/web/src/app/core/router.service.ts
++++ b/apps/web/src/app/core/router.service.ts
+@@ -23,7 +23,7 @@ export class RouterService {
+       .subscribe((event: NavigationEnd) => {
+         this.currentUrl = event.url;
+ 
+-        let title = i18nService.t("pageTitle", "Bitwarden");
++        let title = i18nService.t("pageTitle", "Vaultwarden");
+         let child = this.activatedRoute.firstChild;
+         while (child.firstChild) {
+           child = child.firstChild;
+diff --git a/apps/web/src/app/core/web-platform-utils.service.ts b/apps/web/src/app/core/web-platform-utils.service.ts
+index ec829d71f..f3a362d0e 100644
+--- a/apps/web/src/app/core/web-platform-utils.service.ts
++++ b/apps/web/src/app/core/web-platform-utils.service.ts
+@@ -133,15 +133,15 @@ export class WebPlatformUtilsService implements PlatformUtilsService {
+   }
+ 
+   isDev(): boolean {
+-    return process.env.NODE_ENV === "development";
++    return false;
+   }
+ 
+   isSelfHost(): boolean {
+-    return WebPlatformUtilsService.isSelfHost();
++    return false;
+   }
+ 
+   static isSelfHost(): boolean {
+-    return process.env.ENV.toString() === "selfhosted";
++    return false;
+   }
+ 
+   copyToClipboard(text: string, options?: any): void | boolean {
+diff --git a/apps/web/src/app/layouts/footer.component.html b/apps/web/src/app/layouts/footer.component.html
+index 8cacb4ceb..37d7cfb03 100644
+--- a/apps/web/src/app/layouts/footer.component.html
++++ b/apps/web/src/app/layouts/footer.component.html
+@@ -1,6 +1,6 @@
+ <div class="container footer text-muted">
+   <div class="row">
+-    <div class="col">&copy; {{ year }} Bitwarden Inc.</div>
++    <div class="col">Vaultwarden (unofficial Bitwarden&reg; server)</div>
+     <div class="col text-center"></div>
+     <div class="col text-right">
+       {{ "versionNumber" | i18n : version }}
+diff --git a/apps/web/src/app/layouts/frontend-layout.component.html b/apps/web/src/app/layouts/frontend-layout.component.html
+index 531e49dad..7b787bb90 100644
+--- a/apps/web/src/app/layouts/frontend-layout.component.html
++++ b/apps/web/src/app/layouts/frontend-layout.component.html
+@@ -1,6 +1,6 @@
+ <router-outlet></router-outlet>
+ <div class="container my-5 text-muted text-center">
+   <environment-selector [hasFlags]="false"></environment-selector>
+-  &copy; {{ year }} Bitwarden Inc. <br />
++  Vaultwarden (unofficial Bitwarden&reg; server)<br />
+   {{ "versionNumber" | i18n : version }}
+ </div>
+diff --git a/apps/web/src/app/layouts/navbar.component.html b/apps/web/src/app/layouts/navbar.component.html
+index 0f13d7dde..88698b00e 100644
+--- a/apps/web/src/app/layouts/navbar.component.html
++++ b/apps/web/src/app/layouts/navbar.component.html
+@@ -1,6 +1,6 @@
+ <nav class="navbar navbar-expand navbar-dark" [ngClass]="{ 'nav-background-alt': selfHosted }">
+   <div class="container">
+-    <a class="navbar-brand" routerLink="/" appA11yTitle="{{ 'pageTitle' | i18n : 'Bitwarden' }}">
++    <a class="navbar-brand" routerLink="/" appA11yTitle="{{ 'pageTitle' | i18n : 'Vaultwarden' }}">
+       <i class="bwi bwi-shield" aria-hidden="true"></i>
+     </a>
+     <div class="collapse navbar-collapse">
+@@ -75,7 +75,7 @@
+               <i class="bwi bwi-fw bwi-user" aria-hidden="true"></i>
+               {{ "accountSettings" | i18n }}
+             </a>
+-            <a bitMenuItem href="https://bitwarden.com/help/" target="_blank" rel="noopener">
++            <a bitMenuItem href="https://github.com/dani-garcia/vaultwarden/" target="_blank" rel="noopener">
+               <i class="bwi bwi-fw bwi-question-circle" aria-hidden="true"></i>
+               {{ "getHelp" | i18n }}
+             </a>
 diff --git a/apps/web/src/app/settings/settings.component.ts b/apps/web/src/app/settings/settings.component.ts
-index 60e81b17e..877f69cfc 100644
+index 60e81b17e..aed159139 100644
 --- a/apps/web/src/app/settings/settings.component.ts
 +++ b/apps/web/src/app/settings/settings.component.ts
-@@ -55,10 +55,5 @@ export class SettingsComponent implements OnInit, OnDestroy {
+@@ -55,10 +55,6 @@ export class SettingsComponent implements OnInit, OnDestroy {
      this.hasFamilySponsorshipAvailable = await this.organizationService.canManageSponsorships();
      const hasPremiumFromOrg = await this.stateService.getHasPremiumFromOrganization();
      let billing = null;
@@ -107,8 +238,8 @@ index 60e81b17e..877f69cfc 100644
 -    }
 -    this.hideSubscription =
 -      !this.premium && hasPremiumFromOrg && (this.selfHosted || billing?.hasNoHistory);
--  }
 +    this.hideSubscription = true;
+   }
  }
 diff --git a/apps/web/src/app/tools/generator.component.ts b/apps/web/src/app/tools/generator.component.ts
 index 425f5cca2..c386d2613 100644
@@ -220,7 +351,7 @@ index 92a1204c6..95be6762d 100644
 +  "background_color": "#FFFFFF"
  }
 diff --git a/apps/web/src/scss/styles.scss b/apps/web/src/scss/styles.scss
-index 0003f521c..987a23429 100644
+index 0003f521c..5a049329d 100644
 --- a/apps/web/src/scss/styles.scss
 +++ b/apps/web/src/scss/styles.scss
 @@ -58,3 +58,60 @@
@@ -284,7 +415,6 @@ index 0003f521c..987a23429 100644
 +  background-position-y: bottom;
 +}
 +/**** END Vaultwarden CHANGES ****/
-\ No newline at end of file
 diff --git a/libs/angular/src/components/register.component.ts b/libs/angular/src/components/register.component.ts
 index 510da6160..40d1cc3f6 100644
 --- a/libs/angular/src/components/register.component.ts
