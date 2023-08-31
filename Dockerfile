@@ -45,7 +45,6 @@ RUN bash /apply_patches.sh
 
 # Build
 RUN npm ci
-RUN npm audit fix || true
 
 # Switch to the web apps folder
 WORKDIR /vault/apps/web

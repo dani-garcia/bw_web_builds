@@ -20,7 +20,6 @@ npm --version
 # Build
 pushd "${VAULT_FOLDER}"
 npm ci
-npm audit fix || true
 
 pushd apps/web
 npm run dist:oss:selfhost
