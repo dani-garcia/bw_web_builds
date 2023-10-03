@@ -463,6 +463,21 @@ index c7d2bcb5e0..ccecc5bda9 100644
        { from: "./src/images", to: "images" },
        { from: "./src/locales", to: "locales" },
        { from: "../../node_modules/qrious/dist/qrious.min.js", to: "scripts" },
+diff --git a/libs/angular/src/auth/components/two-factor-options.component.ts b/libs/angular/src/auth/components/two-factor-options.component.ts
+index 786a9d7bb5..3b7e72d647 100644
+--- a/libs/angular/src/auth/components/two-factor-options.component.ts
++++ b/libs/angular/src/auth/components/two-factor-options.component.ts
+@@ -30,7 +30,9 @@ export class TwoFactorOptionsComponent implements OnInit {
+   }
+ 
+   recover() {
+-    this.platformUtilsService.launchUri("https://vault.bitwarden.com/#/recover-2fa");
++    this.platformUtilsService.launchUri(
++      "https://bitwarden.com/help/two-step-recovery-code/#use-your-recovery-code"
++    );
+     this.onRecoverSelected.emit();
+   }
+ }
 diff --git a/libs/angular/src/components/register.component.ts b/libs/angular/src/components/register.component.ts
 index 5363be3941..da1c9024b5 100644
 --- a/libs/angular/src/components/register.component.ts
