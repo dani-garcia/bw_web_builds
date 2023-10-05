@@ -17,7 +17,7 @@
 #    docker cp $image_id:/bw_web_vault.tar.gz .
 #    docker rm $image_id
 
-FROM node:16-bookworm as build
+FROM node:18-bookworm as build
 RUN node --version && npm --version
 
 # Prepare the folder to enable non-root, otherwise npm will refuse to run the postinstall
