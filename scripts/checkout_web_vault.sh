@@ -15,7 +15,7 @@ trap 'handle_error $LINENO $?' ERR
 
 # Ask for ref if not provided
 if [[ -z "$VAULT_VERSION" ]]; then
-    read -rp "Input a git ref (commit hash, branch name, tag name, 'master'): " input
+    read -rp "Input a git ref (commit hash, branch name, tag name, 'main'): " input
     VAULT_VERSION="${input}"
 fi
 
@@ -34,10 +34,10 @@ if [ ! -d "${VAULT_FOLDER}" ]; then
 else
     # If there already is a checked-out repo, lets clean it up first.
     pushd "${VAULT_FOLDER}"
-        # Stash current changes if there are any, we don't want to loose our work if we had some
+        # Stash current changes if there are any, we don't want to lose our work if we had some
         git stash --include-untracked --quiet &> /dev/null || true
-        # Checkout the master repo first
-        git checkout master
+        # Checkout the main branch first
+        git checkout main
         git reset --hard
         git checkout -f
     popd
@@ -47,7 +47,7 @@ pushd "${VAULT_FOLDER}"
 
 # Update branch and tag metadata
 git fetch --tags --all
-git pull origin master
+git pull origin main
 
 # Checkout the branch we want
 git -c advice.detachedHead=false checkout "${VAULT_VERSION}"
