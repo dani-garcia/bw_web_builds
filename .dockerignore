@@ -1,6 +1,7 @@
 # Local build artifacts
 builds
 docker_builds
+container_builds
 web-vault
 
 # Documentation
@@ -8,6 +9,13 @@ web-vault
 *.txt
 
 # Other
+.env
 .github
 Makefile
 .vscode
+
+# Release files
+*.tar.gz
+*.tar.gz.asc
+*.tar.gz.text
+sha256sums.txt

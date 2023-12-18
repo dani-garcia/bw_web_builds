@@ -15,6 +15,21 @@ trap 'handle_error $LINENO $?' ERR
 
 pushd "${VAULT_FOLDER}"
 
+# Try to get the vault version if possible
+if [[ -z ${VAULT_VERSION} ]]; then
+    VAULT_VERSION=$(get_web_vault_version)
+fi
+
+# Check the format of the provided vault version
+# If this is web-vYYYY.M.B or YYYY.M.B then fix this automatically to prepend with a `v` or remove web
+if [[ "${VAULT_VERSION}" =~ ^20[0-9]{2}\.[0-9]{1,2}.[0-9]{1} ]]; then
+    VAULT_VERSION="v${VAULT_VERSION}"
+elif [[ "${VAULT_VERSION}" =~ ^web-v20[0-9]{2}\.[0-9]{1,2}.[0-9]{1} ]]; then
+    VAULT_VERSION="${VAULT_VERSION#web-}"
+fi
+
+export VAULT_VERSION
+
 # Apply a patch from the patches directory
 # shellcheck source=apply_patches.sh
 . "${BASEDIR}/apply_patches.sh"
