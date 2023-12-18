@@ -12,5 +12,7 @@ function get_web_vault_version {
     if [[ -z "${VAULT_VERSION}" ]]; then
       VAULT_VERSION=$(git rev-parse HEAD)
     fi
-    echo "${VAULT_VERSION#web-}"
+    # Remove everything up to the first occurrence of "-"
+    # The extracted tag could start with either `web-`, `desktop-`, `cli-` or `browser-`
+    echo "${VAULT_VERSION#*-}"
 }

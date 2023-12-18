@@ -1,21 +1,19 @@
 # Compile the web vault using docker
 # Usage:
 #    Quick and easy:
-#    `make docker-extract`
+#    `make container-extract`
 #    or, if you just want to build
-#    `make docker`
+#    `make container`
+#    The default is to use `docker` you can also configure `podman` via a `.env` file
+#    See the `.env.template` file for more details
 #
 #    docker build -t web_vault_build .
-#    image_id=$(docker create web_vault_build)
-#    docker cp $image_id:/bw_web_vault.tar.gz .
-#    docker rm $image_id
+#    docker create --name bw_web_vault_extract web_vault_build
+#    docker cp bw_web_vault_extract:/bw_web_vault.tar.gz .
+#    docker rm bw_web_vault_extract
 #
 #    Note: you can use --build-arg to specify the version to build:
-#    docker build -t web_vault_build --build-arg VAULT_VERSION=master .
-
-#    image_id=$(docker create bitwardenrs/web-vault@sha256:feb3f46d15738191b9043be4cdb1be2c0078ed411e7b7be73a2f4fcbca01e13c)
-#    docker cp $image_id:/bw_web_vault.tar.gz .
-#    docker rm $image_id
+#    docker build -t web_vault_build --build-arg VAULT_VERSION=main .
 
 FROM node:18-bookworm as build
 RUN node --version && npm --version
@@ -32,10 +30,10 @@ USER node
 ARG VAULT_VERSION=8d90085607341deab976952bce8d8937cf3eefb1
 
 WORKDIR /vault
-RUN git init
-RUN git remote add origin https://github.com/bitwarden/clients.git
-RUN git fetch --depth 1 origin "${VAULT_VERSION}"
-RUN git -c advice.detachedHead=false checkout FETCH_HEAD
+RUN git -c init.defaultBranch=main init && \
+    git remote add origin https://github.com/bitwarden/clients.git && \
+    git fetch --depth 1 origin "${VAULT_VERSION}" && \
+    git -c advice.detachedHead=false checkout FETCH_HEAD
 
 COPY --chown=node:node patches /patches
 COPY --chown=node:node resources /resources
@@ -61,6 +59,9 @@ RUN printf '{"version":"%s"}' \
 # Prepare the final archives
 RUN mv build web-vault
 RUN tar -czvf "bw_web_vault.tar.gz" web-vault --owner=0 --group=0
+
+# Output the sha256sum here so people are able to match the sha256sum from the CI with the assets and the downloaded version if needed
+RUN echo "sha256sum: $(sha256sum "bw_web_vault.tar.gz")"
 
 # We copy the final result as a separate empty image so there's no need to download all the intermediate steps
 # The result is included both uncompressed and as a tar.gz, to be able to use it in the docker images and the github releases directly

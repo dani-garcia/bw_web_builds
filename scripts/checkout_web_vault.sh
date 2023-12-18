@@ -16,7 +16,7 @@ trap 'handle_error $LINENO $?' ERR
 # Ask for ref if not provided
 if [[ -z "$VAULT_VERSION" ]]; then
     read -rp "Input a git ref (commit hash, branch name, tag name, 'main'): " input
-    VAULT_VERSION="${input}"
+    VAULT_VERSION="${input:-main}"
 fi
 
 # Check the format of the provided vault version
@@ -29,27 +29,28 @@ fi
 echo "Using: '${VAULT_VERSION}' to checkout bitwarden/client."
 
 if [ ! -d "${VAULT_FOLDER}" ]; then
-    # If this is the first time, clone the project
-    git clone https://github.com/bitwarden/clients.git "${VAULT_FOLDER}"
+    mkdir -pv "${VAULT_FOLDER}"
+    pushd "${VAULT_FOLDER}"
+        # If this is the first time, init the repo and checkout the requested branch/tag/hash
+        git -c init.defaultBranch=main init
+        git remote add origin https://github.com/bitwarden/clients.git
+    popd
 else
     # If there already is a checked-out repo, lets clean it up first.
     pushd "${VAULT_FOLDER}"
         # Stash current changes if there are any, we don't want to lose our work if we had some
+        echo "Stashing all custom changes"
         git stash --include-untracked --quiet &> /dev/null || true
-        # Checkout the main branch first
-        git checkout main
+
+        # Reset hard to make sure no changes are left
         git reset --hard
-        git checkout -f
     popd
 fi
 
+# Checkout the request
 pushd "${VAULT_FOLDER}"
-
-# Update branch and tag metadata
-git fetch --tags --all
-git pull origin main
-
-# Checkout the branch we want
-git -c advice.detachedHead=false checkout "${VAULT_VERSION}"
-
+    # Update branch and tag metadata
+    git fetch --tags --depth 1 origin "${VAULT_VERSION}"
+    # Checkout the branch we want
+    git -c advice.detachedHead=false checkout FETCH_HEAD
 popd

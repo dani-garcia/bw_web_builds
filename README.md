@@ -13,15 +13,13 @@
 
 <br>
 
-This is a repository to store the builds of the [Bitwarden web vault](https://github.com/bitwarden/clients/tree/master/apps/web) with the patches to make it work with [vaultwarden](https://github.com/dani-garcia/vaultwarden)
+This is a repository to store the builds of the [Bitwarden web vault](https://github.com/bitwarden/clients/tree/main/apps/web) with the patches to make it work with [Vaultwarden](https://github.com/dani-garcia/vaultwarden)
 
-To create a patch you need to modify the original sources from [Bitwarden web vault](https://github.com/bitwarden/clients/tree/master/apps/web) and execute:
+To create a patch you need to modify the original sources from [Bitwarden web vault](https://github.com/bitwarden/clients/tree/main/apps/web) and execute:
 
 ```bash
 git --no-pager diff --submodule=diff --no-color --minimal
 ```
-
-This is needed because there are patches within the jslib submodule which with a default `git diff` are not shown.
 
 ## Building the web-vault
 To build the web-vault you need either node and npm installed or use Docker.
@@ -34,13 +32,30 @@ make full
 
 That will generate a `tar.gz` file within the `builds` directory which you can extract and use with the `WEB_VAULT_FOLDER` environment variable.
 
-### Using Docker
-Or via the usage of Docker:
+### Using a container
+Or via the usage of building via a container:
 ```bash
-make docker-extract
+make container-extract
 ```
 
-That will extract the `tar.gz` and files generated via Docker into the `docker_builds` directory.
+That will extract the `tar.gz` and files generated via Docker into the `container_builds` directory.
+
+#### Which container command to use, docker or podman
+The default is to use `docker`, but `podman` works too.
+
+You can force them by replacing `container` with either `docker` or `podman`, like:
+```bash
+make docker-extract
+# Or
+make podman-extract
+```
+
+You can configure the default via a `.env` file. See the `.env.template`.<br>
+Or you can set it as a make argument with the make command:
+```bash
+make CONTAINER_CMD=podman container-extract
+```
+
 
 ### More information
 For more information see: [Install the web-vault](https://github.com/dani-garcia/vaultwarden/wiki/Building-binary#install-the-web-vault)
@@ -51,8 +66,8 @@ The builds are available in the [releases page](https://github.com/dani-garcia/b
 <br>
 
 ## Get in touch
-To ask a question, offer suggestions or new features or to get help configuring or installing the software, please [use the forum](https://vaultwarden.discourse.group/).
+If you spot any bugs or crashes with Vaultwarden itself, please [create an issue here](https://github.com/dani-garcia/vaultwarden/issues/). Make sure there aren't any similar issues open, though!
 
-If you spot any bugs or crashes with vaultwarden itself, please [create an issue](https://github.com/dani-garcia/vaultwarden/issues/). Make sure there aren't any similar issues open, though!
+To ask a question, offer suggestions or new features or to get help configuring or installing the software, please use either [GitHub Discussions](https://github.com/dani-garcia/vaultwarden/discussions) or [the forum](https://vaultwarden.discourse.group/).
 
 If you prefer to chat, we're usually hanging around at [#vaultwarden:matrix.org](https://matrix.to/#/#vaultwarden:matrix.org) room on Matrix. Feel free to join us!
