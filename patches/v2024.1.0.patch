@@ -420,7 +420,7 @@ index baff9d1b68..25f99cb40a 100644
      </div>
    </div>
 diff --git a/apps/web/src/app/vault/individual-vault/vault.component.ts b/apps/web/src/app/vault/individual-vault/vault.component.ts
-index 964debb536..12b23f8888 100644
+index 5ca857dae6..bc7568f5f4 100644
 --- a/apps/web/src/app/vault/individual-vault/vault.component.ts
 +++ b/apps/web/src/app/vault/individual-vault/vault.component.ts
 @@ -188,11 +188,7 @@ export class VaultComponent implements OnInit, OnDestroy {
@@ -436,19 +436,6 @@ index 964debb536..12b23f8888 100644
  
      const firstSetup$ = this.route.queryParams.pipe(
        first(),
-diff --git a/apps/web/src/app/vault/org-vault/vault-header/vault-header.component.ts b/apps/web/src/app/vault/org-vault/vault-header/vault-header.component.ts
-index 9740705ae9..e000d3f10c 100644
---- a/apps/web/src/app/vault/org-vault/vault-header/vault-header.component.ts
-+++ b/apps/web/src/app/vault/org-vault/vault-header/vault-header.component.ts
-@@ -160,7 +160,7 @@ export class VaultHeaderComponent {
-   }
- 
-   async addCollection() {
--    if (this.organization.planProductType === ProductType.Free) {
-+    if (this.organization.planProductType !== ProductType.Free) {
-       const collections = await this.collectionAdminService.getAll(this.organization.id);
-       if (collections.length === this.organization.maxCollections) {
-         this.showFreeOrgUpgradeDialog();
 diff --git a/apps/web/src/app/vault/org-vault/vault.component.ts b/apps/web/src/app/vault/org-vault/vault.component.ts
 index 4dd05b67c1..e6d9344261 100644
 --- a/apps/web/src/app/vault/org-vault/vault.component.ts
