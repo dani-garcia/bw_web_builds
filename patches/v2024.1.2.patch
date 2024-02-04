@@ -25,26 +25,9 @@ index 83e0e35cf3..9385c4071c 100644
        </bit-form-field>
        <bit-form-field>
 diff --git a/apps/web/src/app/admin-console/organizations/settings/account.component.ts b/apps/web/src/app/admin-console/organizations/settings/account.component.ts
-index 10aa1224e2..df3d18e89b 100644
+index 10aa1224e2..d3219be672 100644
 --- a/apps/web/src/app/admin-console/organizations/settings/account.component.ts
 +++ b/apps/web/src/app/admin-console/organizations/settings/account.component.ts
-@@ -120,14 +120,14 @@ export class AccountComponent {
-         this.canUseApi = organization.useApi;
- 
-         // Update disabled states - reactive forms prefers not using disabled attribute
--        if (!this.selfHosted) {
-+        if (this.selfHosted) {
-           this.formGroup.get("orgName").enable();
-           this.formGroup.get("businessName").enable();
-           this.collectionManagementFormGroup.get("limitCollectionCreationDeletion").enable();
-           this.collectionManagementFormGroup.get("allowAdminAccessToAllCollectionItems").enable();
-         }
- 
--        if (!this.selfHosted && this.canEditSubscription) {
-+        if (this.selfHosted && this.canEditSubscription) {
-           this.formGroup.get("billingEmail").enable();
-         }
- 
 @@ -183,7 +183,7 @@ export class AccountComponent {
  
    submitCollectionManagement = async () => {
