@@ -25,18 +25,17 @@ index 83e0e35cf3..9385c4071c 100644
        </bit-form-field>
        <bit-form-field>
 diff --git a/apps/web/src/app/admin-console/organizations/settings/account.component.ts b/apps/web/src/app/admin-console/organizations/settings/account.component.ts
-index 10aa1224e2..d3219be672 100644
+index 10aa1224e2..3b6f3a702a 100644
 --- a/apps/web/src/app/admin-console/organizations/settings/account.component.ts
 +++ b/apps/web/src/app/admin-console/organizations/settings/account.component.ts
-@@ -183,7 +183,7 @@ export class AccountComponent {
+@@ -182,6 +182,7 @@ export class AccountComponent {
+   };
  
    submitCollectionManagement = async () => {
++    return; // flexible collections are not supported by Vaultwarden
      // Early exit if self-hosted
--    if (this.selfHosted) {
-+    if (!this.selfHosted) {
+     if (this.selfHosted) {
        return;
-     }
- 
 diff --git a/apps/web/src/app/app.component.ts b/apps/web/src/app/app.component.ts
 index 1f7d8cc2f1..5b45fd9b52 100644
 --- a/apps/web/src/app/app.component.ts
