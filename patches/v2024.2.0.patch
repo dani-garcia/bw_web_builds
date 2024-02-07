@@ -33,6 +33,24 @@ index f43a9edbdc..3af390445e 100644
      return canAccessBillingTab(organization);
    }
  
+diff --git a/apps/web/src/app/admin-console/organizations/organization-routing.module.ts b/apps/web/src/app/admin-console/organizations/organization-routing.module.ts
+index 7abee6b0d0..2e3b789b23 100644
+--- a/apps/web/src/app/admin-console/organizations/organization-routing.module.ts
++++ b/apps/web/src/app/admin-console/organizations/organization-routing.module.ts
+@@ -68,13 +68,6 @@ const routes: Routes = [
+             (m) => m.OrganizationReportingModule,
+           ),
+       },
+-      {
+-        path: "billing",
+-        loadChildren: () =>
+-          import("../../billing/organizations/organization-billing.module").then(
+-            (m) => m.OrganizationBillingModule,
+-          ),
+-      },
+     ],
+   },
+ ];
 diff --git a/apps/web/src/app/admin-console/organizations/settings/account.component.html b/apps/web/src/app/admin-console/organizations/settings/account.component.html
 index 4e5bbc0349..397e036035 100644
 --- a/apps/web/src/app/admin-console/organizations/settings/account.component.html
@@ -136,7 +154,7 @@ index a77d42a359..7de4e33fe2 100644
  >
    <app-org-info
 diff --git a/apps/web/src/app/billing/organizations/organization-plans.component.ts b/apps/web/src/app/billing/organizations/organization-plans.component.ts
-index 78a18674c4..768ed1f4f1 100644
+index 78a18674c4..a2d6606850 100644
 --- a/apps/web/src/app/billing/organizations/organization-plans.component.ts
 +++ b/apps/web/src/app/billing/organizations/organization-plans.component.ts
 @@ -151,10 +151,11 @@ export class OrganizationPlansComponent implements OnInit, OnDestroy {
@@ -217,18 +235,14 @@ index 78a18674c4..768ed1f4f1 100644
  
      if (this.hasProvider) {
        const providerRequest = new ProviderOrganizationCreateRequest(
-diff --git a/apps/web/src/app/components/payment-method-banners/payment-method-banners.component.ts b/apps/web/src/app/components/payment-method-banners/payment-method-banners.component.ts
-index 69f3d6c2e7..37678e1443 100644
---- a/apps/web/src/app/components/payment-method-banners/payment-method-banners.component.ts
-+++ b/apps/web/src/app/components/payment-method-banners/payment-method-banners.component.ts
-@@ -41,6 +41,7 @@ export class PaymentMethodBannersComponent {
-     this.billingBannerService.paymentMethodBannerStates$,
-   ]).pipe(
-     switchMap(async ([organizations, paymentMethodBannerStates]) => {
-+      return null; // disable payment method banner
-       return await Promise.all(
-         organizations.map(async (organization) => {
-           const matchingBanner = paymentMethodBannerStates.find(
+@@ -751,6 +760,7 @@ export class OrganizationPlansComponent implements OnInit, OnDestroy {
+   }
+ 
+   private upgradeFlowPrefillForm() {
++    return; // Vaultwarden only supports free plan
+     if (this.acceptingSponsorship) {
+       this.formGroup.controls.product.setValue(ProductType.Families);
+       this.changedProduct();
 diff --git a/apps/web/src/app/core/init.service.ts b/apps/web/src/app/core/init.service.ts
 index 899a168479..5bb71b05f6 100644
 --- a/apps/web/src/app/core/init.service.ts
@@ -340,6 +354,18 @@ index 72f0f1f1da..cea0867131 100644
 +    Vaultwarden is not associated with the Bitwarden&reg; project nor Bitwarden Inc.
 +  </div>
  </div>
+diff --git a/apps/web/src/app/layouts/header/web-header.component.html b/apps/web/src/app/layouts/header/web-header.component.html
+index d2eb43a696..dfef7ec6e8 100644
+--- a/apps/web/src/app/layouts/header/web-header.component.html
++++ b/apps/web/src/app/layouts/header/web-header.component.html
+@@ -23,7 +23,6 @@
+     <div class="tw-ml-auto tw-flex tw-flex-col tw-gap-4">
+       <div class="tw-flex tw-min-w-max tw-items-center tw-justify-end tw-gap-2">
+         <ng-content></ng-content>
+-        <product-switcher></product-switcher>
+         <ng-container *ngIf="account$ | async as account">
+           <button
+             type="button"
 diff --git a/apps/web/src/app/layouts/navbar.component.html b/apps/web/src/app/layouts/navbar.component.html
 index 72dd17d0dc..aaac2905dd 100644
 --- a/apps/web/src/app/layouts/navbar.component.html
@@ -374,6 +400,33 @@ index 72dd17d0dc..aaac2905dd 100644
                <i class="bwi bwi-fw bwi-question-circle" aria-hidden="true"></i>
                {{ "getHelp" | i18n }}
              </a>
+diff --git a/apps/web/src/app/layouts/user-layout.component.html b/apps/web/src/app/layouts/user-layout.component.html
+index af71e4d37a..28dca81162 100644
+--- a/apps/web/src/app/layouts/user-layout.component.html
++++ b/apps/web/src/app/layouts/user-layout.component.html
+@@ -1,4 +1,3 @@
+ <app-navbar></app-navbar>
+-<app-payment-method-banners></app-payment-method-banners>
+ <router-outlet></router-outlet>
+ <app-footer></app-footer>
+diff --git a/apps/web/src/app/oss-routing.module.ts b/apps/web/src/app/oss-routing.module.ts
+index aa4df5de14..3ae89f9de0 100644
+--- a/apps/web/src/app/oss-routing.module.ts
++++ b/apps/web/src/app/oss-routing.module.ts
+@@ -225,13 +225,6 @@ const routes: Routes = [
+             component: DomainRulesComponent,
+             data: { titleId: "domainRules" },
+           },
+-          {
+-            path: "subscription",
+-            loadChildren: () =>
+-              import("./billing/individual/individual-billing.module").then(
+-                (m) => m.IndividualBillingModule,
+-              ),
+-          },
+           {
+             path: "emergency-access",
+             children: [
 diff --git a/apps/web/src/app/settings/settings.component.ts b/apps/web/src/app/settings/settings.component.ts
 index 181506607e..63d1455cef 100644
 --- a/apps/web/src/app/settings/settings.component.ts
@@ -395,6 +448,26 @@ index 181506607e..63d1455cef 100644
 +    this.hideSubscription = true; // always hide subscriptions in Vaultwarden
    }
  }
+diff --git a/apps/web/src/app/shared/loose-components.module.ts b/apps/web/src/app/shared/loose-components.module.ts
+index bb83b0972b..262b52d8e4 100644
+--- a/apps/web/src/app/shared/loose-components.module.ts
++++ b/apps/web/src/app/shared/loose-components.module.ts
+@@ -60,7 +60,6 @@ import { UpdateTempPasswordComponent } from "../auth/update-temp-password.compon
+ import { VerifyEmailTokenComponent } from "../auth/verify-email-token.component";
+ import { VerifyRecoverDeleteComponent } from "../auth/verify-recover-delete.component";
+ import { DynamicAvatarComponent } from "../components/dynamic-avatar.component";
+-import { PaymentMethodBannersComponent } from "../components/payment-method-banners/payment-method-banners.component";
+ import { SelectableAvatarComponent } from "../components/selectable-avatar.component";
+ import { FooterComponent } from "../layouts/footer.component";
+ import { FrontendLayoutComponent } from "../layouts/frontend-layout.component";
+@@ -110,7 +109,6 @@ import { SharedModule } from "./shared.module";
+     PipesModule,
+     PasswordCalloutComponent,
+     DangerZoneComponent,
+-    PaymentMethodBannersComponent,
+   ],
+   declarations: [
+     AcceptFamilySponsorshipComponent,
 diff --git a/apps/web/src/app/tools/send/access.component.html b/apps/web/src/app/tools/send/access.component.html
 index baff9d1b68..25f99cb40a 100644
 --- a/apps/web/src/app/tools/send/access.component.html
