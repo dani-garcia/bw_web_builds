@@ -154,7 +154,7 @@ index a77d42a359..7de4e33fe2 100644
  >
    <app-org-info
 diff --git a/apps/web/src/app/billing/organizations/organization-plans.component.ts b/apps/web/src/app/billing/organizations/organization-plans.component.ts
-index 78a18674c4..a2d6606850 100644
+index 78a18674c4..7da6266710 100644
 --- a/apps/web/src/app/billing/organizations/organization-plans.component.ts
 +++ b/apps/web/src/app/billing/organizations/organization-plans.component.ts
 @@ -151,10 +151,11 @@ export class OrganizationPlansComponent implements OnInit, OnDestroy {
@@ -163,8 +163,8 @@ index 78a18674c4..a2d6606850 100644
        this.organization = this.organizationService.get(this.organizationId);
 -      this.billing = await this.organizationApiService.getBilling(this.organizationId);
 -      this.sub = await this.organizationApiService.getSubscription(this.organizationId);
-+      // this.billing = await this.organizationApiService.getBilling(this.organizationId);
-+      // this.sub = await this.organizationApiService.getSubscription(this.organizationId);
++      this.billing = null; // no billing in Vaultwarden
++      this.sub = null; // no subscriptions in Vaultwarden;
      }
  
 +    /* no need to ask /api/plans because Vaultwarden only supports the free plan
@@ -175,7 +175,7 @@ index 78a18674c4..a2d6606850 100644
        this.plan = providerDefaultPlan.type;
        this.product = providerDefaultPlan.product;
      }
-+    end of asking /api/plans */
++    end of asking /api/plans in Vaultwarden */
  
      if (!this.createOrganization) {
        this.upgradeFlowPrefillForm();
@@ -541,6 +541,18 @@ index 92a1204c60..d9ff4771a3 100644
 +  "theme_color": "#FFFFFF",
 +  "background_color": "#FFFFFF"
  }
+diff --git a/apps/web/src/scss/base.scss b/apps/web/src/scss/base.scss
+index 4600620be8..660abc47a2 100644
+--- a/apps/web/src/scss/base.scss
++++ b/apps/web/src/scss/base.scss
+@@ -3,6 +3,7 @@ html {
+ }
+ 
+ body {
++  position: relative;
+   min-width: 1010px;
+ 
+   &.layout_frontend {
 diff --git a/apps/web/src/scss/styles.scss b/apps/web/src/scss/styles.scss
 index 05cd9fef4e..a6962e9c88 100644
 --- a/apps/web/src/scss/styles.scss
