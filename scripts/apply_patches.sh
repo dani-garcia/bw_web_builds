@@ -29,6 +29,14 @@ fi
 echo "Patching images"
 cp -vfR ../resources/src/* ./apps/web/src/
 
+echo "Patching logos"
+../scripts/replace-embedded-svg-icons.sh \
+	../resources/vaultwarden-admin-console-logo.svg \
+	./apps/web/src/app/admin-console/icons/admin-console-logo.ts
+../scripts/replace-embedded-svg-icons.sh \
+	../resources/vaultwarden-password-manager-logo.svg \
+	./apps/web/src/app/layouts/password-manager-logo.ts
+
 echo "Using patch: ${PATCH_NAME}"
 git apply "../patches/${PATCH_NAME}" --reject
 
