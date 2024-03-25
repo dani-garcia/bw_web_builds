@@ -1,6 +1,18 @@
 #!/usr/bin/env bash
 set -o pipefail -o errexit
 
+function replace_embedded_svg_icon() {
+if [ ! -f $1 ]; then echo "$1 does not exist"; exit -1; fi
+if [ ! -f $2 ]; then echo "$2 does not exist"; exit -1; fi
+
+echo "'$1' -> '$2'"
+
+first='`$'
+last='^`'
+sed -i "/$first/,/$last/{ /$first/{p; r $1
+}; /$last/p; d }" $2
+}
+
 # If a patch was not provided, try to choose one
 if [[ -z ${PATCH_NAME} ]]; then
     # If a patch with the same name as the ref exists, use it
@@ -28,6 +40,14 @@ fi
 
 echo "Patching images"
 cp -vfR ../resources/src/* ./apps/web/src/
+
+echo "Patching logos"
+replace_embedded_svg_icon \
+	../resources/vaultwarden-admin-console-logo.svg \
+	./apps/web/src/app/admin-console/icons/admin-console-logo.ts
+replace_embedded_svg_icon \
+	../resources/vaultwarden-password-manager-logo.svg \
+	./apps/web/src/app/layouts/password-manager-logo.ts
 
 echo "Using patch: ${PATCH_NAME}"
 git apply "../patches/${PATCH_NAME}" --reject
