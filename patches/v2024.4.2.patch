@@ -1,0 +1,870 @@
+diff --git a/apps/web/src/app/admin-console/organizations/create/organization-information.component.html b/apps/web/src/app/admin-console/organizations/create/organization-information.component.html
+index e0a8006081..789efd9264 100644
+--- a/apps/web/src/app/admin-console/organizations/create/organization-information.component.html
++++ b/apps/web/src/app/admin-console/organizations/create/organization-information.component.html
+@@ -12,7 +12,7 @@
+       <input bitInput type="text" formControlName="name" />
+     </bit-form-field>
+     <bit-form-field class="tw-w-1/2">
+-      <bit-label>{{ "billingEmail" | i18n }}</bit-label>
++      <bit-label>{{ "email" | i18n }}</bit-label>
+       <input bitInput type="email" formControlName="billingEmail" />
+     </bit-form-field>
+     <bit-form-field class="tw-w-1/2" *ngIf="isProvider">
+diff --git a/apps/web/src/app/admin-console/organizations/layouts/organization-layout.component.ts b/apps/web/src/app/admin-console/organizations/layouts/organization-layout.component.ts
+index b1a84c22f3..b52f4c7cb2 100644
+--- a/apps/web/src/app/admin-console/organizations/layouts/organization-layout.component.ts
++++ b/apps/web/src/app/admin-console/organizations/layouts/organization-layout.component.ts
+@@ -121,6 +121,7 @@ export class OrganizationLayoutComponent implements OnInit, OnDestroy {
+   }
+ 
+   canShowBillingTab(organization: Organization): boolean {
++    return false; // disable billing tab in Vaultwarden
+     return canAccessBillingTab(organization);
+   }
+ 
+diff --git a/apps/web/src/app/admin-console/organizations/members/people.component.ts b/apps/web/src/app/admin-console/organizations/members/people.component.ts
+index af04d83c34..2ae49ea968 100644
+--- a/apps/web/src/app/admin-console/organizations/members/people.component.ts
++++ b/apps/web/src/app/admin-console/organizations/members/people.component.ts
+@@ -190,11 +190,7 @@ export class PeopleComponent extends BasePeopleComponent<OrganizationUserView> {
+             .find((p) => p.organizationId === this.organization.id);
+           this.orgResetPasswordPolicyEnabled = resetPasswordPolicy?.enabled;
+ 
+-          const billingMetadata = await this.billingApiService.getOrganizationBillingMetadata(
+-            this.organization.id,
+-          );
+-
+-          this.orgIsOnSecretsManagerStandalone = billingMetadata.isOnSecretsManagerStandalone;
++          this.orgIsOnSecretsManagerStandalone = false; // don't get billing metadata
+ 
+           await this.load();
+ 
+diff --git a/apps/web/src/app/admin-console/organizations/organization-routing.module.ts b/apps/web/src/app/admin-console/organizations/organization-routing.module.ts
+index 7abee6b0d0..2e3b789b23 100644
+--- a/apps/web/src/app/admin-console/organizations/organization-routing.module.ts
++++ b/apps/web/src/app/admin-console/organizations/organization-routing.module.ts
+@@ -68,13 +68,6 @@ const routes: Routes = [
+             (m) => m.OrganizationReportingModule,
+           ),
+       },
+-      {
+-        path: "billing",
+-        loadChildren: () =>
+-          import("../../billing/organizations/organization-billing.module").then(
+-            (m) => m.OrganizationBillingModule,
+-          ),
+-      },
+     ],
+   },
+ ];
+diff --git a/apps/web/src/app/admin-console/organizations/settings/account.component.html b/apps/web/src/app/admin-console/organizations/settings/account.component.html
+index 082fe7eb80..32feab6f4d 100644
+--- a/apps/web/src/app/admin-console/organizations/settings/account.component.html
++++ b/apps/web/src/app/admin-console/organizations/settings/account.component.html
+@@ -17,7 +17,7 @@
+           <input bitInput id="orgName" type="text" formControlName="orgName" />
+         </bit-form-field>
+         <bit-form-field>
+-          <bit-label>{{ "billingEmail" | i18n }}</bit-label>
++          <bit-label>{{ "email" | i18n }}</bit-label>
+           <input bitInput id="billingEmail" formControlName="billingEmail" type="email" />
+         </bit-form-field>
+       </div>
+diff --git a/apps/web/src/app/admin-console/organizations/settings/account.component.ts b/apps/web/src/app/admin-console/organizations/settings/account.component.ts
+index 1ce05f7a30..62116941ce 100644
+--- a/apps/web/src/app/admin-console/organizations/settings/account.component.ts
++++ b/apps/web/src/app/admin-console/organizations/settings/account.component.ts
+@@ -95,7 +95,7 @@ export class AccountComponent {
+   ) {}
+ 
+   async ngOnInit() {
+-    this.selfHosted = this.platformUtilsService.isSelfHost();
++    this.selfHosted = false; // set to false so we can rename organizations
+ 
+     this.route.params
+       .pipe(
+@@ -197,6 +197,7 @@ export class AccountComponent {
+   }
+ 
+   submitCollectionManagement = async () => {
++    return; // flexible collections are not supported by Vaultwarden
+     // Early exit if self-hosted
+     if (this.selfHosted) {
+       return;
+diff --git a/apps/web/src/app/app.component.ts b/apps/web/src/app/app.component.ts
+index 1da2d94c15..123f666380 100644
+--- a/apps/web/src/app/app.component.ts
++++ b/apps/web/src/app/app.component.ts
+@@ -2,7 +2,7 @@ import { DOCUMENT } from "@angular/common";
+ import { Component, Inject, NgZone, OnDestroy, OnInit } from "@angular/core";
+ import { NavigationEnd, Router } from "@angular/router";
+ import * as jq from "jquery";
+-import { Subject, switchMap, takeUntil, timer } from "rxjs";
++import { Subject, takeUntil } from "rxjs";
+ 
+ import { EventUploadService } from "@bitwarden/common/abstractions/event/event-upload.service";
+ import { NotificationsService } from "@bitwarden/common/abstractions/notifications.service";
+@@ -12,7 +12,6 @@ import { InternalOrganizationServiceAbstraction } from "@bitwarden/common/admin-
+ import { InternalPolicyService } from "@bitwarden/common/admin-console/abstractions/policy/policy.service.abstraction";
+ import { AuthService } from "@bitwarden/common/auth/abstractions/auth.service";
+ import { KeyConnectorService } from "@bitwarden/common/auth/abstractions/key-connector.service";
+-import { PaymentMethodWarningsServiceAbstraction as PaymentMethodWarningService } from "@bitwarden/common/billing/abstractions/payment-method-warnings-service.abstraction";
+ import { BroadcasterService } from "@bitwarden/common/platform/abstractions/broadcaster.service";
+ import { ConfigService } from "@bitwarden/common/platform/abstractions/config/config.service";
+ import { CryptoService } from "@bitwarden/common/platform/abstractions/crypto.service";
+@@ -44,7 +43,6 @@ import {
+ 
+ const BroadcasterSubscriptionId = "AppComponent";
+ const IdleTimeout = 60000 * 10; // 10 minutes
+-const PaymentMethodWarningsRefresh = 60000; // 1 Minute
+ 
+ @Component({
+   selector: "app-root",
+@@ -55,7 +53,6 @@ export class AppComponent implements OnDestroy, OnInit {
+   private idleTimer: number = null;
+   private isIdle = false;
+   private destroy$ = new Subject<void>();
+-  private paymentMethodWarningsRefresh$ = timer(0, PaymentMethodWarningsRefresh);
+ 
+   constructor(
+     @Inject(DOCUMENT) private document: Document,
+@@ -84,7 +81,6 @@ export class AppComponent implements OnDestroy, OnInit {
+     private dialogService: DialogService,
+     private biometricStateService: BiometricStateService,
+     private stateEventRunnerService: StateEventRunnerService,
+-    private paymentMethodWarningService: PaymentMethodWarningService,
+     private organizationService: InternalOrganizationServiceAbstraction,
+   ) {}
+ 
+@@ -206,6 +202,10 @@ export class AppComponent implements OnDestroy, OnInit {
+             break;
+           }
+           case "showToast":
++            if (typeof message.text === "string" && typeof crypto.subtle === "undefined") {
++              message.title = "This browser requires HTTPS to use the web vault";
++              message.text = "Check the Vaultwarden wiki for details on how to enable it";
++            }
+             this.toastService._showToast(message);
+             break;
+           case "convertAccountToKeyConnector":
+@@ -239,21 +239,6 @@ export class AppComponent implements OnDestroy, OnInit {
+       new DisableSendPolicy(),
+       new SendOptionsPolicy(),
+     ]);
+-
+-    this.paymentMethodWarningsRefresh$
+-      .pipe(
+-        switchMap(() => this.organizationService.memberOrganizations$),
+-        switchMap(
+-          async (organizations) =>
+-            await Promise.all(
+-              organizations.map((organization) =>
+-                this.paymentMethodWarningService.update(organization.id),
+-              ),
+-            ),
+-        ),
+-        takeUntil(this.destroy$),
+-      )
+-      .subscribe();
+   }
+ 
+   ngOnDestroy() {
+@@ -273,7 +258,6 @@ export class AppComponent implements OnDestroy, OnInit {
+       this.collectionService.clear(userId),
+       this.passwordGenerationService.clear(),
+       this.biometricStateService.logout(userId as UserId),
+-      this.paymentMethodWarningService.clear(),
+     ]);
+ 
+     await this.stateEventRunnerService.handleEvent("logout", userId as UserId);
+diff --git a/apps/web/src/app/auth/emergency-access/accept/accept-emergency.component.html b/apps/web/src/app/auth/emergency-access/accept/accept-emergency.component.html
+index 4690a4e63a..9d297671d2 100644
+--- a/apps/web/src/app/auth/emergency-access/accept/accept-emergency.component.html
++++ b/apps/web/src/app/auth/emergency-access/accept/accept-emergency.component.html
+@@ -1,6 +1,6 @@
+ <div class="mt-5 d-flex justify-content-center" *ngIf="loading">
+   <div>
+-    <img class="mb-4 logo logo-themed" alt="Bitwarden" />
++    <img class="mb-4 logo logo-themed" alt="Vaultwarden" />
+     <p class="text-center">
+       <i
+         class="bwi bwi-spinner bwi-spin bwi-2x text-muted"
+diff --git a/apps/web/src/app/auth/login/login.component.html b/apps/web/src/app/auth/login/login.component.html
+index 0e29a34278..8beb6c7aab 100644
+--- a/apps/web/src/app/auth/login/login.component.html
++++ b/apps/web/src/app/auth/login/login.component.html
+@@ -9,7 +9,7 @@
+     class="tw-mx-auto tw-mt-5 tw-flex tw-max-w-lg tw-flex-col tw-items-center tw-justify-center tw-p-8"
+   >
+     <div>
+-      <img class="logo logo-themed" alt="Bitwarden" />
++      <img class="logo logo-themed" alt="Vaultwarden" />
+       <p class="tw-mx-4 tw-mb-4 tw-mt-3 tw-text-center tw-text-xl">
+         {{ "loginOrCreateNewAccount" | i18n }}
+       </p>
+@@ -51,7 +51,7 @@
+             </button>
+           </div>
+ 
+-          <div class="tw-mb-3 tw-flex tw-flex-col tw-items-center tw-justify-center">
++          <div class="tw-mb-3 tw-flex tw-flex-col tw-items-center tw-justify-center vw-hide">
+             <p class="tw-mb-3">{{ "or" | i18n }}</p>
+ 
+             <a
+diff --git a/apps/web/src/app/auth/settings/change-password.component.html b/apps/web/src/app/auth/settings/change-password.component.html
+index 7c3c22b3d7..9a6900104d 100644
+--- a/apps/web/src/app/auth/settings/change-password.component.html
++++ b/apps/web/src/app/auth/settings/change-password.component.html
+@@ -125,5 +125,3 @@
+     {{ "changeMasterPassword" | i18n }}
+   </button>
+ </form>
+-
+-<app-webauthn-login-settings></app-webauthn-login-settings>
+diff --git a/apps/web/src/app/auth/settings/two-factor-authenticator.component.ts b/apps/web/src/app/auth/settings/two-factor-authenticator.component.ts
+index 849e003440..de32156aad 100644
+--- a/apps/web/src/app/auth/settings/two-factor-authenticator.component.ts
++++ b/apps/web/src/app/auth/settings/two-factor-authenticator.component.ts
+@@ -109,11 +109,11 @@ export class TwoFactorAuthenticatorComponent
+       new window.QRious({
+         element: document.getElementById("qr"),
+         value:
+-          "otpauth://totp/Bitwarden:" +
++          "otpauth://totp/Vaultwarden:" +
+           Utils.encodeRFC3986URIComponent(email) +
+           "?secret=" +
+           encodeURIComponent(this.key) +
+-          "&issuer=Bitwarden",
++          "&issuer=Vaultwarden",
+         size: 160,
+       });
+     }, 100);
+diff --git a/apps/web/src/app/billing/organizations/organization-billing-history-view.component.ts b/apps/web/src/app/billing/organizations/organization-billing-history-view.component.ts
+index 78872aa6a9..eed953b91a 100644
+--- a/apps/web/src/app/billing/organizations/organization-billing-history-view.component.ts
++++ b/apps/web/src/app/billing/organizations/organization-billing-history-view.component.ts
+@@ -44,7 +44,7 @@ export class OrgBillingHistoryViewComponent implements OnInit, OnDestroy {
+       return;
+     }
+     this.loading = true;
+-    this.billing = await this.organizationApiService.getBilling(this.organizationId);
++    this.billing = null;
+     this.loading = false;
+   }
+ }
+diff --git a/apps/web/src/app/billing/organizations/organization-plans.component.html b/apps/web/src/app/billing/organizations/organization-plans.component.html
+index a77d42a359..7de4e33fe2 100644
+--- a/apps/web/src/app/billing/organizations/organization-plans.component.html
++++ b/apps/web/src/app/billing/organizations/organization-plans.component.html
+@@ -6,7 +6,7 @@
+   ></i>
+   <span class="sr-only">{{ "loading" | i18n }}</span>
+ </ng-container>
+-<ng-container *ngIf="createOrganization && selfHosted">
++<ng-container *ngIf="createOrganization && false">
+   <p>{{ "uploadLicenseFileOrg" | i18n }}</p>
+   <form #form (ngSubmit)="submit()" [appApiAction]="formPromise" ngNativeValidate>
+     <div class="form-group">
+@@ -28,7 +28,7 @@
+   (ngSubmit)="submit()"
+   [appApiAction]="formPromise"
+   ngNativeValidate
+-  *ngIf="!loading && !selfHosted && this.passwordManagerPlans && this.secretsManagerPlans"
++  *ngIf="!loading"
+   class="tw-pt-6"
+ >
+   <app-org-info
+diff --git a/apps/web/src/app/billing/organizations/organization-plans.component.ts b/apps/web/src/app/billing/organizations/organization-plans.component.ts
+index 23d48d93be..e648643504 100644
+--- a/apps/web/src/app/billing/organizations/organization-plans.component.ts
++++ b/apps/web/src/app/billing/organizations/organization-plans.component.ts
+@@ -152,10 +152,11 @@ export class OrganizationPlansComponent implements OnInit, OnDestroy {
+   async ngOnInit() {
+     if (this.organizationId) {
+       this.organization = await this.organizationService.get(this.organizationId);
+-      this.billing = await this.organizationApiService.getBilling(this.organizationId);
+-      this.sub = await this.organizationApiService.getSubscription(this.organizationId);
++      this.billing = null; // no billing in Vaultwarden
++      this.sub = null; // no subscriptions in Vaultwarden;
+     }
+ 
++    /* no need to ask /api/plans because Vaultwarden only supports the free plan
+     if (!this.selfHosted) {
+       const plans = await this.apiService.getPlans();
+       this.passwordManagerPlans = plans.data.filter((plan) => !!plan.PasswordManager);
+@@ -187,6 +188,7 @@ export class OrganizationPlansComponent implements OnInit, OnDestroy {
+       this.plan = providerDefaultPlan.type;
+       this.product = providerDefaultPlan.product;
+     }
++    end of asking /api/plans in Vaultwarden */
+ 
+     if (!this.createOrganization) {
+       this.upgradeFlowPrefillForm();
+@@ -258,6 +260,7 @@ export class OrganizationPlansComponent implements OnInit, OnDestroy {
+   }
+ 
+   get selectableProducts() {
++    return null; // there are no products to select in Vaultwarden
+     if (this.acceptingSponsorship) {
+       const familyPlan = this.passwordManagerPlans.find(
+         (plan) => plan.type === PlanType.FamiliesAnnually,
+@@ -289,6 +292,7 @@ export class OrganizationPlansComponent implements OnInit, OnDestroy {
+   }
+ 
+   get selectablePlans() {
++    return null; // no plans to select in Vaultwarden
+     const selectedProductType = this.formGroup.controls.product.value;
+     const result =
+       this.passwordManagerPlans?.filter(
+@@ -430,10 +434,12 @@ export class OrganizationPlansComponent implements OnInit, OnDestroy {
+   }
+ 
+   get planOffersSecretsManager() {
++    return false; // no support for secrets manager in Vaultwarden
+     return this.selectedSecretsManagerPlan != null;
+   }
+ 
+   changedProduct() {
++    return; // no choice of products in Vaultwarden
+     const selectedPlan = this.selectablePlans[0];
+ 
+     this.setPlanType(selectedPlan.type);
+@@ -546,7 +552,7 @@ export class OrganizationPlansComponent implements OnInit, OnDestroy {
+           const orgKeys = await this.cryptoService.makeKeyPair(orgKey[1]);
+ 
+           if (this.selfHosted) {
+-            orgId = await this.createSelfHosted(key, collectionCt, orgKeys);
++            orgId = await this.createCloudHosted(key, collectionCt, orgKeys, orgKey[1]);
+           } else {
+             orgId = await this.createCloudHosted(key, collectionCt, orgKeys, orgKey[1]);
+           }
+@@ -645,7 +651,9 @@ export class OrganizationPlansComponent implements OnInit, OnDestroy {
+     request.billingEmail = this.formGroup.controls.billingEmail.value;
+     request.initiationPath = "New organization creation in-product";
+     request.keys = new OrganizationKeysRequest(orgKeys[0], orgKeys[1].encryptedString);
++    request.planType = PlanType.Free; // always select the free plan in Vaultwarden
+ 
++    /* there is no plan to select in Vaultwarden
+     if (this.selectedPlan.type === PlanType.Free) {
+       request.planType = PlanType.Free;
+     } else {
+@@ -672,6 +680,7 @@ export class OrganizationPlansComponent implements OnInit, OnDestroy {
+ 
+     // Secrets Manager
+     this.buildSecretsManagerRequest(request);
++    end plan selection and no support for secret manager in Vaultwarden */
+ 
+     if (this.hasProvider) {
+       const providerRequest = new ProviderOrganizationCreateRequest(
+@@ -753,6 +762,7 @@ export class OrganizationPlansComponent implements OnInit, OnDestroy {
+   }
+ 
+   private upgradeFlowPrefillForm() {
++    return; // Vaultwarden only supports free plan
+     if (this.acceptingSponsorship) {
+       this.formGroup.controls.product.setValue(ProductType.Families);
+       this.changedProduct();
+diff --git a/apps/web/src/app/core/router.service.ts b/apps/web/src/app/core/router.service.ts
+index caebb22733..b64392a944 100644
+--- a/apps/web/src/app/core/router.service.ts
++++ b/apps/web/src/app/core/router.service.ts
+@@ -45,7 +45,7 @@ export class RouterService {
+       .subscribe((event: NavigationEnd) => {
+         this.currentUrl = event.url;
+ 
+-        let title = i18nService.t("bitWebVault");
++        let title = "Vaultwarden Web";
+ 
+         if (this.currentUrl.includes("/sm/")) {
+           title = i18nService.t("bitSecretsManager");
+diff --git a/apps/web/src/app/core/web-platform-utils.service.ts b/apps/web/src/app/core/web-platform-utils.service.ts
+index 02c7c29e34..9fd100024a 100644
+--- a/apps/web/src/app/core/web-platform-utils.service.ts
++++ b/apps/web/src/app/core/web-platform-utils.service.ts
+@@ -133,14 +133,17 @@ export class WebPlatformUtilsService implements PlatformUtilsService {
+   }
+ 
+   isDev(): boolean {
++    return false; // treat Vaultwarden as production ready
+     return process.env.NODE_ENV === "development";
+   }
+ 
+   isSelfHost(): boolean {
++    return true; // treat Vaultwarden as self hosted
+     return WebPlatformUtilsService.isSelfHost();
+   }
+ 
+   static isSelfHost(): boolean {
++    return true; // treat Vaultwarden as self hosted
+     return process.env.ENV.toString() === "selfhosted";
+   }
+ 
+diff --git a/apps/web/src/app/layouts/frontend-layout.component.html b/apps/web/src/app/layouts/frontend-layout.component.html
+index 72f0f1f1da..cea0867131 100644
+--- a/apps/web/src/app/layouts/frontend-layout.component.html
++++ b/apps/web/src/app/layouts/frontend-layout.component.html
+@@ -1,6 +1,11 @@
+ <router-outlet></router-outlet>
+ <div class="container my-5 text-muted text-center">
+-  <environment-selector></environment-selector>
+-  &copy; {{ year }} Bitwarden Inc. <br />
++  Vaultwarden Web<br />
+   {{ "versionNumber" | i18n: version }}
++  <br /><br />
++  <div class="small">
++    A modified version of the Bitwarden&reg; Web Vault for Vaultwarden (an unofficial rewrite of the
++    Bitwarden&reg; server).<br />
++    Vaultwarden is not associated with the Bitwarden&reg; project nor Bitwarden Inc.
++  </div>
+ </div>
+diff --git a/apps/web/src/app/layouts/header/web-header.component.html b/apps/web/src/app/layouts/header/web-header.component.html
+index e24013de6f..3267478574 100644
+--- a/apps/web/src/app/layouts/header/web-header.component.html
++++ b/apps/web/src/app/layouts/header/web-header.component.html
+@@ -89,7 +89,12 @@
+                 <i class="bwi bwi-fw bwi-user" aria-hidden="true"></i>
+                 {{ "accountSettings" | i18n }}
+               </a>
+-              <a bitMenuItem href="https://bitwarden.com/help/" target="_blank" rel="noreferrer">
++              <a
++                bitMenuItem
++                href="https://github.com/dani-garcia/vaultwarden"
++                target="_blank"
++                rel="noreferrer"
++              >
+                 <i class="bwi bwi-fw bwi-question-circle" aria-hidden="true"></i>
+                 {{ "getHelp" | i18n }}
+               </a>
+diff --git a/apps/web/src/app/layouts/product-switcher/product-switcher-content.component.html b/apps/web/src/app/layouts/product-switcher/product-switcher-content.component.html
+index f038fafecc..62029ee870 100644
+--- a/apps/web/src/app/layouts/product-switcher/product-switcher-content.component.html
++++ b/apps/web/src/app/layouts/product-switcher/product-switcher-content.component.html
+@@ -29,7 +29,7 @@
+ 
+     <!-- Other options -->
+     <section
+-      *ngIf="products.other.length > 0"
++      *ngIf="false"
+       class="tw-mt-4 tw-flex tw-w-full tw-flex-col tw-gap-2 tw-border-0 tw-border-t tw-border-solid tw-border-t-text-muted tw-p-2 tw-pb-0"
+     >
+       <span class="tw-mb-1 tw-text-xs tw-text-muted">{{ "moreFromBitwarden" | i18n }}</span>
+diff --git a/apps/web/src/app/layouts/user-layout.component.html b/apps/web/src/app/layouts/user-layout.component.html
+index 15a01fa07b..719b9ba7f3 100644
+--- a/apps/web/src/app/layouts/user-layout.component.html
++++ b/apps/web/src/app/layouts/user-layout.component.html
+@@ -35,8 +35,5 @@
+ 
+     <app-toggle-width></app-toggle-width>
+   </nav>
+-  <app-payment-method-warnings
+-    *ngIf="showPaymentMethodWarningBanners$ | async"
+-  ></app-payment-method-warnings>
+   <router-outlet></router-outlet>
+ </bit-layout>
+diff --git a/apps/web/src/app/layouts/user-layout.component.ts b/apps/web/src/app/layouts/user-layout.component.ts
+index fea0352867..1f8d6296d8 100644
+--- a/apps/web/src/app/layouts/user-layout.component.ts
++++ b/apps/web/src/app/layouts/user-layout.component.ts
+@@ -1,7 +1,7 @@
+ import { CommonModule } from "@angular/common";
+ import { Component, OnInit } from "@angular/core";
+ import { RouterModule } from "@angular/router";
+-import { Observable, combineLatest, concatMap } from "rxjs";
++import { Observable, of } from "rxjs";
+ 
+ import { JslibModule } from "@bitwarden/angular/jslib.module";
+ import { ApiService } from "@bitwarden/common/abstractions/api.service";
+@@ -13,8 +13,6 @@ import { PlatformUtilsService } from "@bitwarden/common/platform/abstractions/pl
+ import { SyncService } from "@bitwarden/common/vault/abstractions/sync/sync.service.abstraction";
+ import { IconModule, LayoutComponent, NavigationModule } from "@bitwarden/components";
+ 
+-import { PaymentMethodWarningsModule } from "../billing/shared";
+-
+ import { PasswordManagerLogo } from "./password-manager-logo";
+ import { ToggleWidthComponent } from "./toggle-width.component";
+ 
+@@ -29,7 +27,6 @@ import { ToggleWidthComponent } from "./toggle-width.component";
+     LayoutComponent,
+     IconModule,
+     NavigationModule,
+-    PaymentMethodWarningsModule,
+     ToggleWidthComponent,
+   ],
+ })
+@@ -57,26 +54,7 @@ export class UserLayoutComponent implements OnInit {
+ 
+     await this.syncService.fullSync(false);
+ 
+-    this.hasFamilySponsorshipAvailable$ = this.organizationService.canManageSponsorships$;
+-
+-    // We want to hide the subscription menu for organizations that provide premium.
+-    // Except if the user has premium personally or has a billing history.
+-    this.showSubscription$ = combineLatest([
+-      this.billingAccountProfileStateService.hasPremiumPersonally$,
+-      this.billingAccountProfileStateService.hasPremiumFromAnyOrganization$,
+-    ]).pipe(
+-      concatMap(async ([hasPremiumPersonally, hasPremiumFromOrg]) => {
+-        const isCloud = !this.platformUtilsService.isSelfHost();
+-
+-        let billing = null;
+-        if (isCloud) {
+-          // TODO: We should remove the need to call this!
+-          billing = await this.apiService.getUserBillingHistory();
+-        }
+-
+-        const cloudAndBillingHistory = isCloud && !billing?.hasNoHistory;
+-        return hasPremiumPersonally || !hasPremiumFromOrg || cloudAndBillingHistory;
+-      }),
+-    );
++    this.hasFamilySponsorshipAvailable$ = of(false); // disable family Sponsorships in Vaultwarden
++    this.showSubscription$ = of(false); // always hide subscriptions in Vaultwarden
+   }
+ }
+diff --git a/apps/web/src/app/oss-routing.module.ts b/apps/web/src/app/oss-routing.module.ts
+index 066ed5db10..1a0ac5ebd3 100644
+--- a/apps/web/src/app/oss-routing.module.ts
++++ b/apps/web/src/app/oss-routing.module.ts
+@@ -229,13 +229,6 @@ const routes: Routes = [
+             component: DomainRulesComponent,
+             data: { titleId: "domainRules" },
+           },
+-          {
+-            path: "subscription",
+-            loadChildren: () =>
+-              import("./billing/individual/individual-billing.module").then(
+-                (m) => m.IndividualBillingModule,
+-              ),
+-          },
+           {
+             path: "emergency-access",
+             children: [
+diff --git a/apps/web/src/app/platform/web-environment.service.ts b/apps/web/src/app/platform/web-environment.service.ts
+index c2eb37eea5..2b5ac93392 100644
+--- a/apps/web/src/app/platform/web-environment.service.ts
++++ b/apps/web/src/app/platform/web-environment.service.ts
+@@ -27,8 +27,17 @@ export class WebEnvironmentService extends DefaultEnvironmentService {
+     super(stateProvider, accountService);
+ 
+     // The web vault always uses the current location as the base url
+-    const urls = process.env.URLS as Urls;
+-    urls.base ??= this.win.location.origin;
++    // If the base URL is `https://vaultwarden.example.com/base/path/`,
++    // `window.location.href` should have one of the following forms:
++    //
++    // - `https://vaultwarden.example.com/base/path/`
++    // - `https://vaultwarden.example.com/base/path/#/some/route[?queryParam=...]`
++    //
++    // We want to get to just `https://vaultwarden.example.com/base/path`.
++    let baseUrl = this.win.location.href;
++    baseUrl = baseUrl.replace(/#.*/, ""); // Strip off `#` and everything after.
++    baseUrl = baseUrl.replace(/\/+$/, ""); // Trim any trailing `/` chars.
++    const urls = { base: baseUrl };
+ 
+     // Find the region
+     const domain = Utils.getDomain(this.win.location.href);
+diff --git a/apps/web/src/app/shared/loose-components.module.ts b/apps/web/src/app/shared/loose-components.module.ts
+index 8f6a1eaedc..8a74b73adc 100644
+--- a/apps/web/src/app/shared/loose-components.module.ts
++++ b/apps/web/src/app/shared/loose-components.module.ts
+@@ -59,7 +59,6 @@ import { UpdatePasswordComponent } from "../auth/update-password.component";
+ import { UpdateTempPasswordComponent } from "../auth/update-temp-password.component";
+ import { VerifyEmailTokenComponent } from "../auth/verify-email-token.component";
+ import { VerifyRecoverDeleteComponent } from "../auth/verify-recover-delete.component";
+-import { PaymentMethodWarningsModule } from "../billing/shared";
+ import { DynamicAvatarComponent } from "../components/dynamic-avatar.component";
+ import { SelectableAvatarComponent } from "../components/selectable-avatar.component";
+ import { FrontendLayoutComponent } from "../layouts/frontend-layout.component";
+@@ -112,7 +111,6 @@ import { SharedModule } from "./shared.module";
+     HeaderModule,
+     OrganizationLayoutComponent,
+     UserLayoutComponent,
+-    PaymentMethodWarningsModule,
+   ],
+   declarations: [
+     AcceptFamilySponsorshipComponent,
+diff --git a/apps/web/src/app/tools/send/access.component.html b/apps/web/src/app/tools/send/access.component.html
+index 6fef7d361d..1deb1164ff 100644
+--- a/apps/web/src/app/tools/send/access.component.html
++++ b/apps/web/src/app/tools/send/access.component.html
+@@ -2,7 +2,7 @@
+   <div
+     class="tw-mx-auto tw-mt-5 tw-flex tw-max-w-xl tw-flex-col tw-items-center tw-justify-center tw-p-8"
+   >
+-    <img class="logo logo-themed" alt="Bitwarden" />
++    <img class="logo logo-themed" alt="Vaultwarden" />
+     <div class="tw-mt-5 tw-w-full">
+       <h2 bitTypography="h2" class="tw-mb-4 tw-text-center">View Send</h2>
+     </div>
+@@ -66,19 +66,6 @@
+     <div class="tw-mt-5 tw-w-10/12 tw-text-center tw-text-muted">
+       <p bitTypography="body2" class="tw-mb-0">
+         {{ "sendAccessTaglineProductDesc" | i18n }}
+-        {{ "sendAccessTaglineLearnMore" | i18n }}
+-        <a
+-          bitLink
+-          href="https://www.bitwarden.com/products/send?source=web-vault"
+-          target="_blank"
+-          rel="noreferrer"
+-          >Bitwarden Send</a
+-        >
+-        {{ "sendAccessTaglineOr" | i18n }}
+-        <a bitLink routerLink="/register" target="_blank" rel="noreferrer">{{
+-          "sendAccessTaglineSignUp" | i18n
+-        }}</a>
+-        {{ "sendAccessTaglineTryToday" | i18n }}
+       </p>
+     </div>
+   </div>
+diff --git a/apps/web/src/app/tools/send/add-edit.component.html b/apps/web/src/app/tools/send/add-edit.component.html
+index 3225b61350..2a192514bf 100644
+--- a/apps/web/src/app/tools/send/add-edit.component.html
++++ b/apps/web/src/app/tools/send/add-edit.component.html
+@@ -227,7 +227,12 @@
+             <bit-label for="password" *ngIf="!hasPassword">{{ "password" | i18n }}</bit-label>
+             <bit-label for="password" *ngIf="hasPassword">{{ "newPassword" | i18n }}</bit-label>
+ 
+-            <input bitInput type="password" formControlName="password" />
++            <input
++              bitInput
++              type="password"
++              formControlName="password"
++              autocomplete="new-password"
++            />
+             <button type="button" bitIconButton bitSuffix bitPasswordInputToggle></button>
+             <bit-hint>{{ "sendPasswordDesc" | i18n }}</bit-hint>
+           </bit-form-field>
+diff --git a/apps/web/src/index.html b/apps/web/src/index.html
+index c3a2c03ed9..1a326771a6 100644
+--- a/apps/web/src/index.html
++++ b/apps/web/src/index.html
+@@ -5,7 +5,7 @@
+     <meta name="viewport" content="width=1010" />
+     <meta name="theme-color" content="#175DDC" />
+ 
+-    <title page-title>Bitwarden Web Vault</title>
++    <title page-title>Vaultwarden Web</title>
+ 
+     <link rel="apple-touch-icon" sizes="180x180" href="images/icons/apple-touch-icon.png" />
+     <link rel="icon" type="image/png" sizes="32x32" href="images/icons/favicon-32x32.png" />
+@@ -17,7 +17,7 @@
+     <app-root>
+       <div class="mt-5 d-flex justify-content-center">
+         <div>
+-          <img class="mb-4 logo logo-themed" alt="Bitwarden" />
++          <img class="mb-4 logo logo-themed" alt="Vaultwarden" />
+           <p class="text-center">
+             <i
+               class="bwi bwi-spinner bwi-spin bwi-2x text-muted"
+diff --git a/apps/web/src/manifest.json b/apps/web/src/manifest.json
+index 92a1204c60..d9ff4771a3 100644
+--- a/apps/web/src/manifest.json
++++ b/apps/web/src/manifest.json
+@@ -1,5 +1,5 @@
+ {
+-  "name": "Bitwarden Vault",
++  "name": "Vaultwarden Web",
+   "icons": [
+     {
+       "src": "images/icons/android-chrome-192x192.png",
+@@ -12,6 +12,6 @@
+       "type": "image/png"
+     }
+   ],
+-  "theme_color": "#175DDC",
+-  "background_color": "#175DDC"
++  "theme_color": "#FFFFFF",
++  "background_color": "#FFFFFF"
+ }
+diff --git a/apps/web/src/scss/styles.scss b/apps/web/src/scss/styles.scss
+index 8fbea200a9..5ad0893e69 100644
+--- a/apps/web/src/scss/styles.scss
++++ b/apps/web/src/scss/styles.scss
+@@ -53,3 +53,80 @@
+ @import "./plugins";
+ @import "./tables";
+ @import "./vault-filters";
++
++/**** START Vaultwarden CHANGES ****/
++/* This combines all selectors extending it into one */
++%vw-hide {
++  display: none !important;
++}
++
++/* This allows searching for the combined style in the browsers dev-tools (look into the head tag) */
++.vw-hide,
++head {
++  @extend %vw-hide;
++}
++
++/* Hide the Subscription Page tab */
++bit-nav-item[route="settings/subscription"] {
++  @extend %vw-hide;
++}
++
++/* Hide any link pointing to Free Bitwarden Families */
++a[href$="/settings/sponsored-families"] {
++  @extend %vw-hide;
++}
++
++/* Hide the `Enterprise Single Sign-On` button on the login page */
++a[routerlink="/sso"] {
++  @extend %vw-hide;
++}
++
++/* Hide Two-Factor menu in Organization settings */
++bit-nav-item[route="settings/two-factor"],
++a[href$="/settings/two-factor"] {
++  @extend %vw-hide;
++}
++
++/* Hide Business Owned checkbox */
++app-org-info > form:nth-child(1) > div:nth-child(3) {
++  @extend %vw-hide;
++}
++
++/* Hide the `This account is owned by a business` checkbox and label */
++#ownedBusiness,
++label[for^="ownedBusiness"] {
++  @extend %vw-hide;
++}
++
++/* Hide the radio button and label for the `Custom` org user type */
++#userTypeCustom,
++label[for^="userTypeCustom"] {
++  @extend %vw-hide;
++}
++
++/* Hide Business Name */
++app-org-account form div bit-form-field.tw-block:nth-child(3) {
++  @extend %vw-hide;
++}
++
++/* Hide organization plans */
++app-organization-plans > form > h2.mt-5 {
++  @extend %vw-hide;
++}
++
++/* Hide Device Verification form at the Two Step Login screen */
++app-security > app-two-factor-setup > form {
++  @extend %vw-hide;
++}
++
++/* Replace the Bitwarden Shield at the top left with a Vaultwarden icon */
++.bwi-shield:before {
++  content: "" !important;
++  width: 32px !important;
++  height: 40px !important;
++  display: block !important;
++  background-image: url(../images/icon-white.png) !important;
++  background-repeat: no-repeat;
++  background-position-y: bottom;
++}
++/**** END Vaultwarden CHANGES ****/
+diff --git a/apps/web/src/scss/variables.scss b/apps/web/src/scss/variables.scss
+index 9d3d8d6ad4..5bc773c0d8 100644
+--- a/apps/web/src/scss/variables.scss
++++ b/apps/web/src/scss/variables.scss
+@@ -3,7 +3,7 @@ $dark-icon-themes: "theme_dark";
+ $primary: #175ddc;
+ $primary-accent: #1252a3;
+ $secondary: #ced4da;
+-$secondary-alt: #1a3b66;
++$secondary-alt: #212529;
+ $success: #017e45;
+ $info: #555555;
+ $warning: #8b6609;
+diff --git a/apps/web/webpack.config.js b/apps/web/webpack.config.js
+index 815a8aff9e..de7402dd4a 100644
+--- a/apps/web/webpack.config.js
++++ b/apps/web/webpack.config.js
+@@ -139,8 +139,6 @@ const plugins = [
+       { from: "./src/favicon.ico" },
+       { from: "./src/browserconfig.xml" },
+       { from: "./src/app-id.json" },
+-      { from: "./src/404.html" },
+-      { from: "./src/404", to: "404" },
+       { from: "./src/images", to: "images" },
+       { from: "./src/locales", to: "locales" },
+       { from: "../../node_modules/qrious/dist/qrious.min.js", to: "scripts" },
+diff --git a/libs/angular/src/auth/components/register.component.ts b/libs/angular/src/auth/components/register.component.ts
+index 3cffebe71b..c1229b5c2c 100644
+--- a/libs/angular/src/auth/components/register.component.ts
++++ b/libs/angular/src/auth/components/register.component.ts
+@@ -106,6 +106,14 @@ export class RegisterComponent extends CaptchaProtectedComponent implements OnIn
+   }
+ 
+   async submit(showToast = true) {
++    if (typeof crypto.subtle === "undefined") {
++      this.platformUtilsService.showToast(
++        "error",
++        "This browser requires HTTPS to use the web vault",
++        "Check the Vaultwarden wiki for details on how to enable it",
++      );
++      return;
++    }
+     let email = this.formGroup.value.email;
+     email = email.trim().toLowerCase();
+     let name = this.formGroup.value.name;
+diff --git a/libs/components/src/tw-theme.css b/libs/components/src/tw-theme.css
+index 72e8e1e5e8..a4ab9308b0 100644
+--- a/libs/components/src/tw-theme.css
++++ b/libs/components/src/tw-theme.css
+@@ -1,9 +1,9 @@
+ @import "./reset.css";
+ 
+-/** 
+-  Note that the value of the *-600 colors is currently equivalent to the value 
++/**
++  Note that the value of the *-600 colors is currently equivalent to the value
+   of the *-500 variant of that color. This is a temporary change to make BW-42
+-  updates easier. 
++  updates easier.
+ 
+   TODO remove comment when the color palette portion of BW-42 is completed.
+ */
+@@ -14,12 +14,12 @@
+   --color-background: 255 255 255;
+   --color-background-alt: 251 251 251;
+   --color-background-alt2: 23 92 219;
+-  --color-background-alt3: 18 82 163;
+-  --color-background-alt4: 13 60 119;
++  --color-background-alt3: 33 37 41; /* bg of menu panel */
++  --color-background-alt4: 16 18 21; /* bg of active menu item */
+ 
+-  --color-primary-300: 103 149 232;
+-  --color-primary-600: 23 93 220;
+-  --color-primary-700: 18 82 163;
++  --color-primary-300: 108 117 125; /* hover of menu items */
++  --color-primary-600: 18 82 163; /* color of links and buttons */
++  --color-primary-700: 13 60 119; /* hover of links and buttons */
+ 
+   --color-secondary-100: 240 240 240;
+   --color-secondary-300: 206 212 220;
+@@ -174,7 +174,7 @@
+ @import "./toast/toast.tokens.css";
+ @import "./toast/toastr.css";
+ 
+-/** 
++/**
+  * tw-break-words does not work with table cells:
+  * https://github.com/tailwindlabs/tailwindcss/issues/835
+  */
+@@ -182,7 +182,7 @@ td.tw-break-words {
+   overflow-wrap: anywhere;
+ }
+ 
+-/** 
++/**
+  * tw-list-none hides summary arrow in Firefox & Chrome but not Safari:
+  * https://github.com/tailwindlabs/tailwindcss/issues/924#issuecomment-915509785
+  */
+@@ -191,7 +191,7 @@ summary.tw-list-none::-webkit-details-marker {
+   display: none;
+ }
+ 
+-/** 
++/**
+  * Arbitrary values can't be used with `text-align`:
+  * https://github.com/tailwindlabs/tailwindcss/issues/802#issuecomment-849013311
+  */
