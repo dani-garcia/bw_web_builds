@@ -832,3 +832,15 @@ index 00ab2ff717..0950b9d787 100644
  
    --color-secondary-100: 240 240 240;
    --color-secondary-300: 206 212 220;
+diff --git a/apps/web/tsconfig.json b/apps/web/tsconfig.json
+index 543d7f25..5579906e 100644
+--- a/apps/web/tsconfig.json
++++ b/apps/web/tsconfig.json
+@@ -30,7 +30,6 @@
+   "files": [
+     "src/polyfills.ts",
+     "src/main.ts",
+-    "../../bitwarden_license/bit-web/src/main.ts",
+     "src/theme.ts"
+   ],
+   "include": [
