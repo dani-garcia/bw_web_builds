@@ -33,7 +33,7 @@ if [[ -n "$GPG_SIGNING_USER" ]]; then
 fi
 
 # Get the latest release tag, this should match the tag created with `gh-prepare`
-LATEST_REMOTE_TAG="v$(git -c 'versionsort.suffix=-' ls-remote --tags --refs --sort='v:refname' https://github.com/dani-garcia/bw_web_builds.git 'v*' | tail -n1 | grep -Eo '[^\/v]*$')"
+LATEST_REMOTE_TAG="v$(git -c 'versionsort.suffix=-' ls-remote --tags --refs --sort='v:refname' https://github.com/vaultwarden/bw_web_builds.git 'v*' | tail -n1 | grep -Eo '[^\/v]*$')"
 
 # Ask for release tag if not provided, or validate the `$LATEST_REMOTE_TAG`
 if [[ -z "$RELEASE_TAG" ]]; then
@@ -65,7 +65,7 @@ while true; do
 done
 
 echo "Extracting tar.gz file from GitHub Container Registry"
-${CONTAINER_CMD} create --name "bw_web_${RELEASE_TAG}" "ghcr.io/dani-garcia/bw_web_builds:${RELEASE_TAG}"
+${CONTAINER_CMD} create --name "bw_web_${RELEASE_TAG}" "ghcr.io/vaultwarden/bw_web_builds:${RELEASE_TAG}"
 ${CONTAINER_CMD} cp "bw_web_${RELEASE_TAG}:/bw_web_vault.tar.gz" "bw_web_${RELEASE_TAG}.tar.gz"
 ${CONTAINER_CMD} rm "bw_web_${RELEASE_TAG}"
 
