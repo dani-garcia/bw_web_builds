@@ -17,12 +17,12 @@ index 7de0c98cd5..f842ad907b 100644
 +++ b/apps/web/src/app/admin-console/organizations/layouts/organization-layout.component.ts
 @@ -120,6 +120,7 @@ export class OrganizationLayoutComponent implements OnInit, OnDestroy {
    }
- 
+
    canShowBillingTab(organization: Organization): boolean {
 +    return false; // disable billing tab in Vaultwarden
      return canAccessBillingTab(organization);
    }
- 
+
 diff --git a/apps/web/src/app/admin-console/organizations/members/people.component.ts b/apps/web/src/app/admin-console/organizations/members/people.component.ts
 index af04d83c34..2ae49ea968 100644
 --- a/apps/web/src/app/admin-console/organizations/members/people.component.ts
@@ -30,16 +30,16 @@ index af04d83c34..2ae49ea968 100644
 @@ -190,11 +190,7 @@ export class PeopleComponent extends BasePeopleComponent<OrganizationUserView> {
              .find((p) => p.organizationId === this.organization.id);
            this.orgResetPasswordPolicyEnabled = resetPasswordPolicy?.enabled;
- 
+
 -          const billingMetadata = await this.billingApiService.getOrganizationBillingMetadata(
 -            this.organization.id,
 -          );
 -
 -          this.orgIsOnSecretsManagerStandalone = billingMetadata.isOnSecretsManagerStandalone;
 +          this.orgIsOnSecretsManagerStandalone = false; // don't get billing metadata
- 
+
            await this.load();
- 
+
 diff --git a/apps/web/src/app/admin-console/organizations/organization-routing.module.ts b/apps/web/src/app/admin-console/organizations/organization-routing.module.ts
 index 7abee6b0d0..2e3b789b23 100644
 --- a/apps/web/src/app/admin-console/organizations/organization-routing.module.ts
@@ -77,16 +77,16 @@ index d8091e46ae..7e4947c4bb 100644
 +++ b/apps/web/src/app/admin-console/organizations/settings/account.component.ts
 @@ -93,7 +93,7 @@ export class AccountComponent {
    ) {}
- 
+
    async ngOnInit() {
 -    this.selfHosted = this.platformUtilsService.isSelfHost();
 +    this.selfHosted = false; // set to false so we can rename organizations
- 
+
      this.route.params
        .pipe(
 @@ -195,6 +195,7 @@ export class AccountComponent {
    }
- 
+
    submitCollectionManagement = async () => {
 +    return; // flexible collections are not supported by Vaultwarden
      // Early exit if self-hosted
@@ -102,7 +102,7 @@ index 6e2761a9c4..307c54104a 100644
  import * as jq from "jquery";
 -import { Subject, filter, firstValueFrom, map, switchMap, takeUntil, timeout, timer } from "rxjs";
 +import { Subject, filter, firstValueFrom, map, takeUntil, timeout } from "rxjs";
- 
+
  import { EventUploadService } from "@bitwarden/common/abstractions/event/event-upload.service";
  import { NotificationsService } from "@bitwarden/common/abstractions/notifications.service";
 @@ -14,7 +14,6 @@ import { AccountService } from "@bitwarden/common/auth/abstractions/account.serv
@@ -114,11 +114,11 @@ index 6e2761a9c4..307c54104a 100644
  import { ConfigService } from "@bitwarden/common/platform/abstractions/config/config.service";
  import { CryptoService } from "@bitwarden/common/platform/abstractions/crypto.service";
 @@ -46,7 +45,6 @@ import {
- 
+
  const BroadcasterSubscriptionId = "AppComponent";
  const IdleTimeout = 60000 * 10; // 10 minutes
 -const PaymentMethodWarningsRefresh = 60000; // 1 Minute
- 
+
  @Component({
    selector: "app-root",
 @@ -57,7 +55,6 @@ export class AppComponent implements OnDestroy, OnInit {
@@ -126,7 +126,7 @@ index 6e2761a9c4..307c54104a 100644
    private isIdle = false;
    private destroy$ = new Subject<void>();
 -  private paymentMethodWarningsRefresh$ = timer(0, PaymentMethodWarningsRefresh);
- 
+
    constructor(
      @Inject(DOCUMENT) private document: Document,
 @@ -86,7 +83,6 @@ export class AppComponent implements OnDestroy, OnInit {
@@ -168,7 +168,7 @@ index 6e2761a9c4..307c54104a 100644
 -      )
 -      .subscribe();
    }
- 
+
    ngOnDestroy() {
 @@ -287,7 +272,6 @@ export class AppComponent implements OnDestroy, OnInit {
        this.collectionService.clear(userId),
@@ -176,7 +176,7 @@ index 6e2761a9c4..307c54104a 100644
        this.biometricStateService.logout(userId),
 -      this.paymentMethodWarningService.clear(),
      ]);
- 
+
      await this.stateEventRunnerService.handleEvent("logout", userId);
 diff --git a/apps/web/src/app/auth/emergency-access/accept/accept-emergency.component.html b/apps/web/src/app/auth/emergency-access/accept/accept-emergency.component.html
 index 4690a4e63a..9d297671d2 100644
@@ -206,11 +206,11 @@ index 0e29a34278..8beb6c7aab 100644
 @@ -51,7 +51,7 @@
              </button>
            </div>
- 
+
 -          <div class="tw-mb-3 tw-flex tw-flex-col tw-items-center tw-justify-center">
 +          <div class="tw-mb-3 tw-flex tw-flex-col tw-items-center tw-justify-center vw-hide">
              <p class="tw-mb-3">{{ "or" | i18n }}</p>
- 
+
              <a
 diff --git a/apps/web/src/app/auth/settings/change-password.component.html b/apps/web/src/app/auth/settings/change-password.component.html
 index 7c3c22b3d7..9a6900104d 100644
@@ -288,7 +288,7 @@ index 23d48d93be..e648643504 100644
 +      this.billing = null; // no billing in Vaultwarden
 +      this.sub = null; // no subscriptions in Vaultwarden;
      }
- 
+
 +    /* no need to ask /api/plans because Vaultwarden only supports the free plan
      if (!this.selfHosted) {
        const plans = await this.apiService.getPlans();
@@ -298,12 +298,12 @@ index 23d48d93be..e648643504 100644
        this.product = providerDefaultPlan.product;
      }
 +    end of asking /api/plans in Vaultwarden */
- 
+
      if (!this.createOrganization) {
        this.upgradeFlowPrefillForm();
 @@ -258,6 +260,7 @@ export class OrganizationPlansComponent implements OnInit, OnDestroy {
    }
- 
+
    get selectableProducts() {
 +    return null; // there are no products to select in Vaultwarden
      if (this.acceptingSponsorship) {
@@ -311,7 +311,7 @@ index 23d48d93be..e648643504 100644
          (plan) => plan.type === PlanType.FamiliesAnnually,
 @@ -289,6 +292,7 @@ export class OrganizationPlansComponent implements OnInit, OnDestroy {
    }
- 
+
    get selectablePlans() {
 +    return null; // no plans to select in Vaultwarden
      const selectedProductType = this.formGroup.controls.product.value;
@@ -319,20 +319,20 @@ index 23d48d93be..e648643504 100644
        this.passwordManagerPlans?.filter(
 @@ -430,10 +434,12 @@ export class OrganizationPlansComponent implements OnInit, OnDestroy {
    }
- 
+
    get planOffersSecretsManager() {
 +    return false; // no support for secrets manager in Vaultwarden
      return this.selectedSecretsManagerPlan != null;
    }
- 
+
    changedProduct() {
 +    return; // no choice of products in Vaultwarden
      const selectedPlan = this.selectablePlans[0];
- 
+
      this.setPlanType(selectedPlan.type);
 @@ -546,7 +552,7 @@ export class OrganizationPlansComponent implements OnInit, OnDestroy {
            const orgKeys = await this.cryptoService.makeKeyPair(orgKey[1]);
- 
+
            if (this.selfHosted) {
 -            orgId = await this.createSelfHosted(key, collectionCt, orgKeys);
 +            orgId = await this.createCloudHosted(key, collectionCt, orgKeys, orgKey[1]);
@@ -344,22 +344,22 @@ index 23d48d93be..e648643504 100644
      request.initiationPath = "New organization creation in-product";
      request.keys = new OrganizationKeysRequest(orgKeys[0], orgKeys[1].encryptedString);
 +    request.planType = PlanType.Free; // always select the free plan in Vaultwarden
- 
+
 +    /* there is no plan to select in Vaultwarden
      if (this.selectedPlan.type === PlanType.Free) {
        request.planType = PlanType.Free;
      } else {
 @@ -672,6 +680,7 @@ export class OrganizationPlansComponent implements OnInit, OnDestroy {
- 
+
      // Secrets Manager
      this.buildSecretsManagerRequest(request);
 +    end plan selection and no support for secret manager in Vaultwarden */
- 
+
      if (this.hasProvider) {
        const providerRequest = new ProviderOrganizationCreateRequest(
 @@ -753,6 +762,7 @@ export class OrganizationPlansComponent implements OnInit, OnDestroy {
    }
- 
+
    private upgradeFlowPrefillForm() {
 +    return; // Vaultwarden only supports free plan
      if (this.acceptingSponsorship) {
@@ -372,10 +372,10 @@ index caebb22733..b64392a944 100644
 @@ -45,7 +45,7 @@ export class RouterService {
        .subscribe((event: NavigationEnd) => {
          this.currentUrl = event.url;
- 
+
 -        let title = i18nService.t("bitWebVault");
 +        let title = "Vaultwarden Web";
- 
+
          if (this.currentUrl.includes("/sm/")) {
            title = i18nService.t("bitSecretsManager");
 diff --git a/apps/web/src/app/core/web-platform-utils.service.ts b/apps/web/src/app/core/web-platform-utils.service.ts
@@ -384,22 +384,22 @@ index 02c7c29e34..9fd100024a 100644
 +++ b/apps/web/src/app/core/web-platform-utils.service.ts
 @@ -133,14 +133,17 @@ export class WebPlatformUtilsService implements PlatformUtilsService {
    }
- 
+
    isDev(): boolean {
 +    return false; // treat Vaultwarden as production ready
      return process.env.NODE_ENV === "development";
    }
- 
+
    isSelfHost(): boolean {
 +    return true; // treat Vaultwarden as self hosted
      return WebPlatformUtilsService.isSelfHost();
    }
- 
+
    static isSelfHost(): boolean {
 +    return true; // treat Vaultwarden as self hosted
      return process.env.ENV.toString() === "selfhosted";
    }
- 
+
 diff --git a/apps/web/src/app/layouts/frontend-layout.component.html b/apps/web/src/app/layouts/frontend-layout.component.html
 index 72f0f1f1da..cea0867131 100644
 --- a/apps/web/src/app/layouts/frontend-layout.component.html
@@ -429,7 +429,7 @@ index e2b3e7910a..fda32e9257 100644
 -              <a bitMenuItem href="https://bitwarden.com/help/" target="_blank" rel="noreferrer">
 +              <a
 +                bitMenuItem
-+                href="https://github.com/dani-garcia/vaultwarden"
++                href="https://github.com/vaultwarden/vaultwarden"
 +                target="_blank"
 +                rel="noreferrer"
 +              >
@@ -441,7 +441,7 @@ index 62d8b6a075..ec8a14c115 100644
 --- a/apps/web/src/app/layouts/product-switcher/product-switcher-content.component.html
 +++ b/apps/web/src/app/layouts/product-switcher/product-switcher-content.component.html
 @@ -30,7 +30,7 @@
- 
+
      <!-- Other options -->
      <section
 -      *ngIf="products.other.length > 0"
@@ -454,7 +454,7 @@ index 15a01fa07b..719b9ba7f3 100644
 --- a/apps/web/src/app/layouts/user-layout.component.html
 +++ b/apps/web/src/app/layouts/user-layout.component.html
 @@ -35,8 +35,5 @@
- 
+
      <app-toggle-width></app-toggle-width>
    </nav>
 -  <app-payment-method-warnings
@@ -472,18 +472,18 @@ index eb507bd997..480ae62cb8 100644
  import { RouterModule } from "@angular/router";
 -import { Observable, combineLatest, concatMap } from "rxjs";
 +import { Observable, of } from "rxjs";
- 
+
  import { JslibModule } from "@bitwarden/angular/jslib.module";
  import { ApiService } from "@bitwarden/common/abstractions/api.service";
 @@ -13,8 +13,6 @@ import { PlatformUtilsService } from "@bitwarden/common/platform/abstractions/pl
  import { SyncService } from "@bitwarden/common/vault/abstractions/sync/sync.service.abstraction";
  import { IconModule, LayoutComponent, NavigationModule } from "@bitwarden/components";
- 
+
 -import { PaymentMethodWarningsModule } from "../billing/shared";
 -
  import { PasswordManagerLogo } from "./password-manager-logo";
  import { ToggleWidthComponent } from "./toggle-width.component";
- 
+
 @@ -29,7 +27,6 @@ import { ToggleWidthComponent } from "./toggle-width.component";
      LayoutComponent,
      IconModule,
@@ -493,9 +493,9 @@ index eb507bd997..480ae62cb8 100644
    ],
  })
 @@ -56,26 +53,7 @@ export class UserLayoutComponent implements OnInit {
- 
+
      await this.syncService.fullSync(false);
- 
+
 -    this.hasFamilySponsorshipAvailable$ = this.organizationService.canManageSponsorships$;
 -
 -    // We want to hide the subscription menu for organizations that provide premium.
@@ -545,7 +545,7 @@ index c2eb37eea5..2b5ac93392 100644
 +++ b/apps/web/src/app/platform/web-environment.service.ts
 @@ -27,8 +27,17 @@ export class WebEnvironmentService extends DefaultEnvironmentService {
      super(stateProvider, accountService);
- 
+
      // The web vault always uses the current location as the base url
 -    const urls = process.env.URLS as Urls;
 -    urls.base ??= this.win.location.origin;
@@ -560,7 +560,7 @@ index c2eb37eea5..2b5ac93392 100644
 +    baseUrl = baseUrl.replace(/#.*/, ""); // Strip off `#` and everything after.
 +    baseUrl = baseUrl.replace(/\/+$/, ""); // Trim any trailing `/` chars.
 +    const urls = { base: baseUrl };
- 
+
      // Find the region
      const domain = Utils.getDomain(this.win.location.href);
 diff --git a/apps/web/src/app/shared/loose-components.module.ts b/apps/web/src/app/shared/loose-components.module.ts
@@ -623,7 +623,7 @@ index 3225b61350..2a192514bf 100644
 @@ -227,7 +227,12 @@
              <bit-label for="password" *ngIf="!hasPassword">{{ "password" | i18n }}</bit-label>
              <bit-label for="password" *ngIf="hasPassword">{{ "newPassword" | i18n }}</bit-label>
- 
+
 -            <input bitInput type="password" formControlName="password" />
 +            <input
 +              bitInput
@@ -641,10 +641,10 @@ index c3a2c03ed9..1a326771a6 100644
 @@ -5,7 +5,7 @@
      <meta name="viewport" content="width=1010" />
      <meta name="theme-color" content="#175DDC" />
- 
+
 -    <title page-title>Bitwarden Web Vault</title>
 +    <title page-title>Vaultwarden Web</title>
- 
+
      <link rel="apple-touch-icon" sizes="180x180" href="images/icons/apple-touch-icon.png" />
      <link rel="icon" type="image/png" sizes="32x32" href="images/icons/favicon-32x32.png" />
 @@ -17,7 +17,7 @@
@@ -793,7 +793,7 @@ index 2ba7669290..dfb9e87e26 100644
 +++ b/libs/angular/src/auth/components/register.component.ts
 @@ -106,6 +106,14 @@ export class RegisterComponent extends CaptchaProtectedComponent implements OnIn
    }
- 
+
    async submit(showToast = true) {
 +    if (typeof crypto.subtle === "undefined") {
 +      this.platformUtilsService.showToast(
@@ -818,7 +818,7 @@ index 00ab2ff717..0950b9d787 100644
 -  --color-background-alt4: 13 60 119;
 +  --color-background-alt3: 33 37 41; /* bg of menu panel */
 +  --color-background-alt4: 16 18 21; /* bg of active menu item */
- 
+
    /* Can only be used behind the extension refresh flag */
    --color-primary-100: 200 217 249;
 -  --color-primary-300: 103 149 232;
@@ -829,6 +829,6 @@ index 00ab2ff717..0950b9d787 100644
 -  --color-primary-700: 18 82 163;
 +  --color-primary-600: 18 82 163; /* color of links and buttons */
 +  --color-primary-700: 13 60 119; /* hover of links and buttons */
- 
+
    --color-secondary-100: 240 240 240;
    --color-secondary-300: 206 212 220;
