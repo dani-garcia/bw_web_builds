@@ -53,4 +53,7 @@ pushd "${VAULT_FOLDER}"
     git fetch --tags --depth 1 origin "${VAULT_VERSION}"
     # Checkout the branch we want
     git -c advice.detachedHead=false checkout FETCH_HEAD
+    # Make sure we don't use non-OSI code
+    # requires patching in next step
+    rm -rf bitwarden_license
 popd
