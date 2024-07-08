@@ -566,13 +566,13 @@ index c2eb37eea5..2b5ac93392 100644
 +    //
 +    // - `https://vaultwarden.example.com/base/path/`
 +    // - `https://vaultwarden.example.com/base/path/#/some/route[?queryParam=...]`
++    // - `https://vaultwarden.example.com/base/path/?queryParam=...`
 +    //
 +    // We want to get to just `https://vaultwarden.example.com/base/path`.
 +    let baseUrl = this.win.location.href;
-+    baseUrl = baseUrl.replace(/#.*/, ""); // Strip off `#` and everything after.
-+    baseUrl = baseUrl.replace(/\/+$/, ""); // Trim any trailing `/` chars.
++    baseUrl = baseUrl.replace(/(\/+|\/*#.*|\/*\?.*)$/, ""); // Strip off trailing `/`, `#`, `?` and everything after.
 +    const urls = { base: baseUrl };
- 
+
      // Find the region
      const domain = Utils.getDomain(this.win.location.href);
 diff --git a/apps/web/src/app/shared/loose-components.module.ts b/apps/web/src/app/shared/loose-components.module.ts
