@@ -23,11 +23,23 @@ index 7de0c98cd5..f842ad907b 100644
      return canAccessBillingTab(organization);
    }
  
+diff --git a/apps/web/src/app/admin-console/organizations/members/components/member-dialog/validators/org-seat-limit-reached.validator.ts b/apps/web/src/app/admin-console/organizations/members/components/member-dialog/validators/org-seat-limit-reached.validator.ts
+index 8b521e2c17..9112c18195 100644
+--- a/apps/web/src/app/admin-console/organizations/members/components/member-dialog/validators/org-seat-limit-reached.validator.ts
++++ b/apps/web/src/app/admin-console/organizations/members/components/member-dialog/validators/org-seat-limit-reached.validator.ts
+@@ -17,6 +17,7 @@ export function orgSeatLimitReachedValidator(
+   errorMessage: string,
+ ): ValidatorFn {
+   return (control: AbstractControl): ValidationErrors | null => {
++    return null; // disable orgSeatLimitReachedValidator
+     if (control.value === "" || !control.value) {
+       return null;
+     }
 diff --git a/apps/web/src/app/admin-console/organizations/members/people.component.ts b/apps/web/src/app/admin-console/organizations/members/people.component.ts
-index af04d83c34..2ae49ea968 100644
+index f385583445..c6f08a32e5 100644
 --- a/apps/web/src/app/admin-console/organizations/members/people.component.ts
 +++ b/apps/web/src/app/admin-console/organizations/members/people.component.ts
-@@ -190,11 +190,7 @@ export class PeopleComponent extends BasePeopleComponent<OrganizationUserView> {
+@@ -193,11 +193,7 @@ export class PeopleComponent extends BasePeopleComponent<OrganizationUserView> {
              .find((p) => p.organizationId === this.organization.id);
            this.orgResetPasswordPolicyEnabled = resetPasswordPolicy?.enabled;
  
