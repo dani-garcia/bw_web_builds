@@ -36,7 +36,7 @@ index 8b521e2c17..9112c18195 100644
        return null;
      }
 diff --git a/apps/web/src/app/admin-console/organizations/members/people.component.ts b/apps/web/src/app/admin-console/organizations/members/people.component.ts
-index f385583445..c6f08a32e5 100644
+index f385583445..ce0f4dea79 100644
 --- a/apps/web/src/app/admin-console/organizations/members/people.component.ts
 +++ b/apps/web/src/app/admin-console/organizations/members/people.component.ts
 @@ -193,11 +193,7 @@ export class PeopleComponent extends BasePeopleComponent<OrganizationUserView> {
@@ -52,6 +52,22 @@ index f385583445..c6f08a32e5 100644
  
            await this.load();
  
+@@ -440,6 +436,7 @@ export class PeopleComponent extends BasePeopleComponent<OrganizationUserView> {
+     // Invite User: Add Flow
+     // Click on user email: Edit Flow
+ 
++    /* disable max user check
+     // User attempting to invite new users in a free org with max users
+     if (
+       !user &&
+@@ -451,6 +448,7 @@ export class PeopleComponent extends BasePeopleComponent<OrganizationUserView> {
+       await this.showSeatLimitReachedDialog();
+       return;
+     }
++    */
+ 
+     const dialog = openUserAddEditDialog(this.dialogService, {
+       data: {
 diff --git a/apps/web/src/app/admin-console/organizations/organization-routing.module.ts b/apps/web/src/app/admin-console/organizations/organization-routing.module.ts
 index 7abee6b0d0..2e3b789b23 100644
 --- a/apps/web/src/app/admin-console/organizations/organization-routing.module.ts
