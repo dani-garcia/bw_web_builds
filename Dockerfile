@@ -18,48 +18,27 @@
 FROM node:18-bookworm as build
 RUN node --version && npm --version
 
-# Prepare the folder to enable non-root, otherwise npm will refuse to run the postinstall
-RUN mkdir /vault
-RUN chown node:node /vault
-USER node
-
 # Can be a tag, release, but prefer a commit hash because it's not changeable
 # https://github.com/bitwarden/clients/commit/${VAULT_VERSION}
 #
 # Using https://github.com/bitwarden/clients/releases/tag/web-v2024.5.1
 ARG VAULT_VERSION=9823f69c9d17e2d94de1cc005e01202dd95f0647
+ENV VAULT_VERSION=$VAULT_VERSION
 
-WORKDIR /vault
-RUN git -c init.defaultBranch=main init && \
-    git remote add origin https://github.com/bitwarden/clients.git && \
-    git fetch --depth 1 origin "${VAULT_VERSION}" && \
-    git -c advice.detachedHead=false checkout FETCH_HEAD
+RUN mkdir /bw_web_builds
+WORKDIR /bw_web_builds
 
-COPY --chown=node:node patches /patches
-COPY --chown=node:node resources /resources
-COPY --chown=node:node scripts/apply_patches.sh /apply_patches.sh
+COPY patches ./patches
+COPY resources ./resources
+COPY scripts ./scripts
 
-RUN bash /apply_patches.sh
-
-# Build
-RUN npm ci
-
-# Switch to the web apps folder
-WORKDIR /vault/apps/web
-
-RUN npm run dist:oss:selfhost
+RUN bash ./scripts/build.sh
 
 RUN printf '{"version":"%s"}' \
       $(git -c 'versionsort.suffix=-' ls-remote --tags --refs --sort='v:refname' https://github.com/dani-garcia/bw_web_builds.git 'v*' | tail -n1 | grep -Eo '[^\/v]*$') \
-      > build/vw-version.json
+      > ./web-vault/vw-version.json
 
-# Delete debugging map files, optional
-# RUN find build -name "*.map" -delete
-
-# Prepare the final archives
-RUN mv build web-vault
-RUN tar -czvf "bw_web_vault.tar.gz" web-vault --owner=0 --group=0
-
+RUN tar -czvf "bw_web_vault.tar.gz" ./web-vault
 # Output the sha256sum here so people are able to match the sha256sum from the CI with the assets and the downloaded version if needed
 RUN echo "sha256sum: $(sha256sum "bw_web_vault.tar.gz")"
 
@@ -67,7 +46,8 @@ RUN echo "sha256sum: $(sha256sum "bw_web_vault.tar.gz")"
 # The result is included both uncompressed and as a tar.gz, to be able to use it in the docker images and the github releases directly
 FROM scratch
 # hadolint ignore=DL3010
-COPY --from=build /vault/apps/web/bw_web_vault.tar.gz /bw_web_vault.tar.gz
-COPY --from=build /vault/apps/web/web-vault /web-vault
+COPY --from=build /bw_web_builds/bw_web_vault.tar.gz /bw_web_vault.tar.gz
+COPY --from=build /bw_web_builds/web-vault /web-vault
+
 # Added so docker create works, can't actually run a scratch image
 CMD [""]

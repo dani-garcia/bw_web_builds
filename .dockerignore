@@ -2,6 +2,7 @@
 builds
 docker_builds
 container_builds
+vault
 web-vault
 
 # Documentation
