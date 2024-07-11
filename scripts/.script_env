@@ -2,7 +2,8 @@
 # shellcheck disable=SC2034
 set -o pipefail -o errexit
 
-VAULT_FOLDER=web-vault
+VAULT_FOLDER=${VAULT_FOLDER:=web-vault}
+CHECKOUT_TAGS=${CHECKOUT_TAGS:=true}
 OUTPUT_FOLDER=builds
 
 function get_web_vault_version {
