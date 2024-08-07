@@ -49,6 +49,9 @@ replace_embedded_svg_icon \
 	../resources/vaultwarden-password-manager-logo.svg \
 	./apps/web/src/app/layouts/password-manager-logo.ts
 
+echo "Remove non-free bitwarden_license/ code"
+rm -rf ./bitwarden_license/
+
 echo "Using patch: ${PATCH_NAME}"
 git apply "../patches/${PATCH_NAME}" --reject
 
