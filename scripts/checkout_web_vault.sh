@@ -26,6 +26,7 @@ if [[ "${VAULT_VERSION}" =~ ^20[0-9]{2}\.[0-9]{1,2}.[0-9]{1} ]]; then
 elif [[ "${VAULT_VERSION}" =~ ^v20[0-9]{2}\.[0-9]{1,2}.[0-9]{1} ]]; then
     VAULT_VERSION="web-${VAULT_VERSION}"
 fi
+
 echo "Using: '${VAULT_VERSION}' to checkout bitwarden/client."
 
 if [ ! -d "${VAULT_FOLDER}" ]; then
@@ -47,10 +48,14 @@ else
     popd
 fi
 
+if [[ "$CHECKOUT_TAGS" == "true" ]]; then
+    CHECKOUT_ARGS="${CHECKOUT_ARGS:-} --tags"
+fi
+
 # Checkout the request
 pushd "${VAULT_FOLDER}"
     # Update branch and tag metadata
-    git fetch --tags --depth 1 origin "${VAULT_VERSION}"
+    git fetch --depth 1 ${CHECKOUT_ARGS:-} origin "${VAULT_VERSION}"
     # Checkout the branch we want
     git -c advice.detachedHead=false checkout FETCH_HEAD
 popd
