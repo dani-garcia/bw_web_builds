@@ -563,7 +563,7 @@ index e543a6f083..343933b043 100644
              path: "emergency-access",
              children: [
 diff --git a/apps/web/src/app/platform/web-environment.service.ts b/apps/web/src/app/platform/web-environment.service.ts
-index c2eb37eea5..2b5ac93392 100644
+index c2eb37eea5..54fc97943c 100644
 --- a/apps/web/src/app/platform/web-environment.service.ts
 +++ b/apps/web/src/app/platform/web-environment.service.ts
 @@ -27,8 +27,17 @@ export class WebEnvironmentService extends DefaultEnvironmentService {
@@ -708,7 +708,7 @@ index 92a1204c60..d9ff4771a3 100644
 +  "background_color": "#FFFFFF"
  }
 diff --git a/apps/web/src/scss/styles.scss b/apps/web/src/scss/styles.scss
-index 8fbea200a9..5ad0893e69 100644
+index 8fbea200a9..e3ff719ab2 100644
 --- a/apps/web/src/scss/styles.scss
 +++ b/apps/web/src/scss/styles.scss
 @@ -53,3 +53,80 @@
@@ -772,7 +772,7 @@ index 8fbea200a9..5ad0893e69 100644
 +}
 +
 +/* Hide organization plans */
-+app-organization-plans > form > h2.mt-5 {
++app-organization-plans > form > bit-section:nth-child(2) {
 +  @extend %vw-hide;
 +}
 +
