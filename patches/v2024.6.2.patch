@@ -865,6 +865,125 @@ index f4e97262a3..12e11b35a3 100644
  
      "<rootDir>/libs/admin-console/jest.config.js",
      "<rootDir>/libs/angular/jest.config.js",
+diff --git a/libs/angular/src/auth/components/lock.component.ts b/libs/angular/src/auth/components/lock.component.ts
+index 64cd664f1f..88b042c5b8 100644
+--- a/libs/angular/src/auth/components/lock.component.ts
++++ b/libs/angular/src/auth/components/lock.component.ts
+@@ -17,9 +17,12 @@ import { KdfConfigService } from "@bitwarden/common/auth/abstractions/kdf-config
+ import { InternalMasterPasswordServiceAbstraction } from "@bitwarden/common/auth/abstractions/master-password.service.abstraction";
+ import { UserVerificationService } from "@bitwarden/common/auth/abstractions/user-verification/user-verification.service.abstraction";
+ import { AuthenticationStatus } from "@bitwarden/common/auth/enums/authentication-status";
++import { VerificationType } from "@bitwarden/common/auth/enums/verification-type";
+ import { ForceSetPasswordReason } from "@bitwarden/common/auth/models/domain/force-set-password-reason";
+-import { SecretVerificationRequest } from "@bitwarden/common/auth/models/request/secret-verification.request";
+-import { MasterPasswordPolicyResponse } from "@bitwarden/common/auth/models/response/master-password-policy.response";
++import {
++  MasterPasswordVerification,
++  MasterPasswordVerificationResponse,
++} from "@bitwarden/common/auth/types/verification";
+ import { VaultTimeoutAction } from "@bitwarden/common/enums/vault-timeout-action.enum";
+ import { CryptoService } from "@bitwarden/common/platform/abstractions/crypto.service";
+ import { EnvironmentService } from "@bitwarden/common/platform/abstractions/environment.service";
+@@ -29,7 +32,7 @@ import { MessagingService } from "@bitwarden/common/platform/abstractions/messag
+ import { PlatformUtilsService } from "@bitwarden/common/platform/abstractions/platform-utils.service";
+ import { StateService } from "@bitwarden/common/platform/abstractions/state.service";
+ import { BiometricStateService } from "@bitwarden/common/platform/biometrics/biometric-state.service";
+-import { HashPurpose, KeySuffixOptions } from "@bitwarden/common/platform/enums";
++import { KeySuffixOptions } from "@bitwarden/common/platform/enums";
+ import { PasswordStrengthServiceAbstraction } from "@bitwarden/common/tools/password-strength";
+ import { UserId } from "@bitwarden/common/types/guid";
+ import { UserKey } from "@bitwarden/common/types/key";
+@@ -45,7 +48,7 @@ export class LockComponent implements OnInit, OnDestroy {
+   pinEnabled = false;
+   masterPasswordEnabled = false;
+   webVaultHostname = "";
+-  formPromise: Promise<MasterPasswordPolicyResponse>;
++  formPromise: Promise<MasterPasswordVerificationResponse>;
+   supportsBiometric: boolean;
+   biometricLock: boolean;
+ 
+@@ -218,51 +221,30 @@ export class LockComponent implements OnInit, OnDestroy {
+   }
+ 
+   private async doUnlockWithMasterPassword() {
+-    const kdfConfig = await this.kdfConfigService.getKdfConfig();
+     const userId = (await firstValueFrom(this.accountService.activeAccount$))?.id;
+ 
+-    const masterKey = await this.cryptoService.makeMasterKey(
+-      this.masterPassword,
+-      this.email,
+-      kdfConfig,
+-    );
+-    const storedMasterKeyHash = await firstValueFrom(
+-      this.masterPasswordService.masterKeyHash$(userId),
+-    );
++    const verification = {
++      type: VerificationType.MasterPassword,
++      secret: this.masterPassword,
++    } as MasterPasswordVerification;
+ 
+     let passwordValid = false;
+-
+-    if (storedMasterKeyHash != null) {
+-      // Offline unlock possible
+-      passwordValid = await this.cryptoService.compareAndUpdateKeyHash(
+-        this.masterPassword,
+-        masterKey,
++    let response: MasterPasswordVerificationResponse;
++    try {
++      this.formPromise = this.userVerificationService.verifyUserByMasterPassword(
++        verification,
++        userId,
++        this.email,
+       );
+-    } else {
+-      // Online only
+-      const request = new SecretVerificationRequest();
+-      const serverKeyHash = await this.cryptoService.hashMasterKey(
+-        this.masterPassword,
+-        masterKey,
+-        HashPurpose.ServerAuthorization,
++      response = await this.formPromise;
++      this.enforcedMasterPasswordOptions = MasterPasswordPolicyOptions.fromResponse(
++        response.policyOptions,
+       );
+-      request.masterPasswordHash = serverKeyHash;
+-      try {
+-        this.formPromise = this.apiService.postAccountVerifyPassword(request);
+-        const response = await this.formPromise;
+-        this.enforcedMasterPasswordOptions = MasterPasswordPolicyOptions.fromResponse(response);
+-        passwordValid = true;
+-        const localKeyHash = await this.cryptoService.hashMasterKey(
+-          this.masterPassword,
+-          masterKey,
+-          HashPurpose.LocalAuthorization,
+-        );
+-        await this.masterPasswordService.setMasterKeyHash(localKeyHash, userId);
+-      } catch (e) {
+-        this.logService.error(e);
+-      } finally {
+-        this.formPromise = null;
+-      }
++      passwordValid = true;
++    } catch (e) {
++      this.logService.error(e);
++    } finally {
++      this.formPromise = null;
+     }
+ 
+     if (!passwordValid) {
+@@ -274,8 +256,9 @@ export class LockComponent implements OnInit, OnDestroy {
+       return;
+     }
+ 
+-    const userKey = await this.masterPasswordService.decryptUserKeyWithMasterKey(masterKey);
+-    await this.masterPasswordService.setMasterKey(masterKey, userId);
++    const userKey = await this.masterPasswordService.decryptUserKeyWithMasterKey(
++      response.masterKey,
++    );
+     await this.setUserKeyAndContinue(userKey, true);
+   }
+ 
 diff --git a/libs/angular/src/auth/components/register.component.ts b/libs/angular/src/auth/components/register.component.ts
 index e3197355dc..e3004ebdf7 100644
 --- a/libs/angular/src/auth/components/register.component.ts
@@ -884,6 +1003,18 @@ index e3197355dc..e3004ebdf7 100644
      let email = this.formGroup.value.email;
      email = email.trim().toLowerCase();
      let name = this.formGroup.value.name;
+diff --git a/libs/angular/src/services/jslib-services.module.ts b/libs/angular/src/services/jslib-services.module.ts
+index 048c182900..cd0bac042f 100644
+--- a/libs/angular/src/services/jslib-services.module.ts
++++ b/libs/angular/src/services/jslib-services.module.ts
+@@ -876,7 +876,6 @@ const safeProviders: SafeProvider[] = [
+     provide: UserVerificationServiceAbstraction,
+     useClass: UserVerificationService,
+     deps: [
+-      StateServiceAbstraction,
+       CryptoServiceAbstraction,
+       AccountServiceAbstraction,
+       InternalMasterPasswordServiceAbstraction,
 diff --git a/libs/auth/src/angular/user-verification/user-verification-dialog.component.html b/libs/auth/src/angular/user-verification/user-verification-dialog.component.html
 index aa4d26ae61..fb3b7cf4cb 100644
 --- a/libs/auth/src/angular/user-verification/user-verification-dialog.component.html
@@ -1042,6 +1173,812 @@ index f4637c770a..cb03f4e18f 100644
  };
  
  /**
+diff --git a/libs/common/src/abstractions/api.service.ts b/libs/common/src/abstractions/api.service.ts
+index 73e4f74e63..dd1e603483 100644
+--- a/libs/common/src/abstractions/api.service.ts
++++ b/libs/common/src/abstractions/api.service.ts
+@@ -61,7 +61,6 @@ import { IdentityCaptchaResponse } from "../auth/models/response/identity-captch
+ import { IdentityTokenResponse } from "../auth/models/response/identity-token.response";
+ import { IdentityTwoFactorResponse } from "../auth/models/response/identity-two-factor.response";
+ import { KeyConnectorUserKeyResponse } from "../auth/models/response/key-connector-user-key.response";
+-import { MasterPasswordPolicyResponse } from "../auth/models/response/master-password-policy.response";
+ import { PreloginResponse } from "../auth/models/response/prelogin.response";
+ import { RegisterResponse } from "../auth/models/response/register.response";
+ import { SsoPreValidateResponse } from "../auth/models/response/sso-pre-validate.response";
+@@ -175,9 +174,6 @@ export abstract class ApiService {
+   postAccountKeys: (request: KeysRequest) => Promise<any>;
+   postAccountVerifyEmail: () => Promise<any>;
+   postAccountVerifyEmailToken: (request: VerifyEmailRequest) => Promise<any>;
+-  postAccountVerifyPassword: (
+-    request: SecretVerificationRequest,
+-  ) => Promise<MasterPasswordPolicyResponse>;
+   postAccountRecoverDelete: (request: DeleteRecoverRequest) => Promise<any>;
+   postAccountRecoverDeleteToken: (request: VerifyDeleteRecoverRequest) => Promise<any>;
+   postAccountKdf: (request: KdfRequest) => Promise<any>;
+diff --git a/libs/common/src/auth/abstractions/user-verification/user-verification-api.service.abstraction.ts b/libs/common/src/auth/abstractions/user-verification/user-verification-api.service.abstraction.ts
+index b861ce4471..ae17abe823 100644
+--- a/libs/common/src/auth/abstractions/user-verification/user-verification-api.service.abstraction.ts
++++ b/libs/common/src/auth/abstractions/user-verification/user-verification-api.service.abstraction.ts
+@@ -1,6 +1,11 @@
++import { SecretVerificationRequest } from "../../models/request/secret-verification.request";
+ import { VerifyOTPRequest } from "../../models/request/verify-otp.request";
++import { MasterPasswordPolicyResponse } from "../../models/response/master-password-policy.response";
+ 
+ export abstract class UserVerificationApiServiceAbstraction {
+   postAccountVerifyOTP: (request: VerifyOTPRequest) => Promise<void>;
+   postAccountRequestOTP: () => Promise<void>;
++  postAccountVerifyPassword: (
++    request: SecretVerificationRequest,
++  ) => Promise<MasterPasswordPolicyResponse>;
+ }
+diff --git a/libs/common/src/auth/abstractions/user-verification/user-verification.service.abstraction.ts b/libs/common/src/auth/abstractions/user-verification/user-verification.service.abstraction.ts
+index 11fe537919..fd04b2e2c5 100644
+--- a/libs/common/src/auth/abstractions/user-verification/user-verification.service.abstraction.ts
++++ b/libs/common/src/auth/abstractions/user-verification/user-verification.service.abstraction.ts
+@@ -1,19 +1,53 @@
++import { UserId } from "../../../types/guid";
+ import { SecretVerificationRequest } from "../../models/request/secret-verification.request";
+ import { UserVerificationOptions } from "../../types/user-verification-options";
+-import { Verification } from "../../types/verification";
++import {
++  MasterPasswordVerification,
++  MasterPasswordVerificationResponse,
++  Verification,
++} from "../../types/verification";
+ 
+ export abstract class UserVerificationService {
++  /**
++   * Returns the available verification options for the user, can be
++   * restricted to a specific type of verification.
++   * @param verificationType Type of verification to restrict the options to
++   * @returns Available verification options for the user
++   */
++  getAvailableVerificationOptions: (
++    verificationType: keyof UserVerificationOptions,
++  ) => Promise<UserVerificationOptions>;
++  /**
++   * Create a new request model to be used for server-side verification
++   * @param verification User-supplied verification data (Master Password or OTP)
++   * @param requestClass The request model to create
++   * @param alreadyHashed Whether the master password is already hashed
++   * @throws Error if the verification data is invalid
++   */
+   buildRequest: <T extends SecretVerificationRequest>(
+     verification: Verification,
+     requestClass?: new () => T,
+     alreadyHashed?: boolean,
+   ) => Promise<T>;
++  /**
++   * Verifies the user using the provided verification data.
++   * PIN or biometrics are verified client-side.
++   * OTP is sent to the server for verification (with no other data)
++   * Master Password verifies client-side first if there is a MP hash, or server-side if not.
++   * @param verification User-supplied verification data (OTP, MP, PIN, or biometrics)
++   * @throws Error if the verification data is invalid or the verification fails
++   */
+   verifyUser: (verification: Verification) => Promise<boolean>;
++  /**
++   * Request a one-time password (OTP) to be sent to the user's email
++   */
+   requestOTP: () => Promise<void>;
+   /**
+-   * Check if user has master password or only uses passwordless technologies to log in
++   * Check if user has master password or can only use passwordless technologies to log in
++   * Note: This only checks the server, not the local state
+    * @param userId The user id to check. If not provided, the current user is used
+    * @returns True if the user has a master password
++   * @deprecated Use UserDecryptionOptionsService.hasMasterPassword$ instead
+    */
+   hasMasterPassword: (userId?: string) => Promise<boolean>;
+   /**
+@@ -22,8 +56,19 @@ export abstract class UserVerificationService {
+    * @returns True if the user has a master password and has used it in the current session
+    */
+   hasMasterPasswordAndMasterKeyHash: (userId?: string) => Promise<boolean>;
+-
+-  getAvailableVerificationOptions: (
+-    verificationType: keyof UserVerificationOptions,
+-  ) => Promise<UserVerificationOptions>;
++  /**
++   * Verifies the user using the provided master password.
++   * Attempts to verify client-side first, then server-side if necessary.
++   * IMPORTANT: Will throw an error if the master password is invalid.
++   * @param verification Master Password verification data
++   * @param userId The user to verify
++   * @param email The user's email
++   * @throws Error if the master password is invalid
++   * @returns An object containing the master key, and master password policy options if verified on server.
++   */
++  verifyUserByMasterPassword: (
++    verification: MasterPasswordVerification,
++    userId: UserId,
++    email: string,
++  ) => Promise<MasterPasswordVerificationResponse>;
+ }
+diff --git a/libs/common/src/auth/services/user-verification/user-verification-api.service.ts b/libs/common/src/auth/services/user-verification/user-verification-api.service.ts
+index 0f0eb16e92..854aaed119 100644
+--- a/libs/common/src/auth/services/user-verification/user-verification-api.service.ts
++++ b/libs/common/src/auth/services/user-verification/user-verification-api.service.ts
+@@ -1,6 +1,8 @@
+ import { ApiService } from "../../../abstractions/api.service";
+ import { UserVerificationApiServiceAbstraction } from "../../abstractions/user-verification/user-verification-api.service.abstraction";
++import { SecretVerificationRequest } from "../../models/request/secret-verification.request";
+ import { VerifyOTPRequest } from "../../models/request/verify-otp.request";
++import { MasterPasswordPolicyResponse } from "../../models/response/master-password-policy.response";
+ 
+ export class UserVerificationApiService implements UserVerificationApiServiceAbstraction {
+   constructor(private apiService: ApiService) {}
+@@ -11,4 +13,9 @@ export class UserVerificationApiService implements UserVerificationApiServiceAbs
+   async postAccountRequestOTP(): Promise<void> {
+     return this.apiService.send("POST", "/accounts/request-otp", null, true, false);
+   }
++  postAccountVerifyPassword(
++    request: SecretVerificationRequest,
++  ): Promise<MasterPasswordPolicyResponse> {
++    return this.apiService.send("POST", "/accounts/verify-password", request, true, true);
++  }
+ }
+diff --git a/libs/common/src/auth/services/user-verification/user-verification.service.spec.ts b/libs/common/src/auth/services/user-verification/user-verification.service.spec.ts
+new file mode 100644
+index 0000000000..653c7a13b3
+--- /dev/null
++++ b/libs/common/src/auth/services/user-verification/user-verification.service.spec.ts
+@@ -0,0 +1,418 @@
++import { mock } from "jest-mock-extended";
++import { of } from "rxjs";
++
++import {
++  PinLockType,
++  PinServiceAbstraction,
++  UserDecryptionOptions,
++  UserDecryptionOptionsServiceAbstraction,
++} from "@bitwarden/auth/common";
++
++import { FakeAccountService, mockAccountServiceWith } from "../../../../spec";
++import { VaultTimeoutSettingsService } from "../../../abstractions/vault-timeout/vault-timeout-settings.service";
++import { CryptoService } from "../../../platform/abstractions/crypto.service";
++import { I18nService } from "../../../platform/abstractions/i18n.service";
++import { LogService } from "../../../platform/abstractions/log.service";
++import { PlatformUtilsService } from "../../../platform/abstractions/platform-utils.service";
++import { HashPurpose } from "../../../platform/enums";
++import { Utils } from "../../../platform/misc/utils";
++import { UserId } from "../../../types/guid";
++import { MasterKey } from "../../../types/key";
++import { KdfConfigService } from "../../abstractions/kdf-config.service";
++import { InternalMasterPasswordServiceAbstraction } from "../../abstractions/master-password.service.abstraction";
++import { UserVerificationApiServiceAbstraction } from "../../abstractions/user-verification/user-verification-api.service.abstraction";
++import { VerificationType } from "../../enums/verification-type";
++import { KdfConfig } from "../../models/domain/kdf-config";
++import { MasterPasswordPolicyResponse } from "../../models/response/master-password-policy.response";
++import { MasterPasswordVerification } from "../../types/verification";
++
++import { UserVerificationService } from "./user-verification.service";
++
++describe("UserVerificationService", () => {
++  let sut: UserVerificationService;
++
++  const cryptoService = mock<CryptoService>();
++  const masterPasswordService = mock<InternalMasterPasswordServiceAbstraction>();
++  const i18nService = mock<I18nService>();
++  const userVerificationApiService = mock<UserVerificationApiServiceAbstraction>();
++  const userDecryptionOptionsService = mock<UserDecryptionOptionsServiceAbstraction>();
++  const pinService = mock<PinServiceAbstraction>();
++  const logService = mock<LogService>();
++  const vaultTimeoutSettingsService = mock<VaultTimeoutSettingsService>();
++  const platformUtilsService = mock<PlatformUtilsService>();
++  const kdfConfigService = mock<KdfConfigService>();
++
++  const mockUserId = Utils.newGuid() as UserId;
++  let accountService: FakeAccountService;
++
++  beforeEach(() => {
++    jest.clearAllMocks();
++    accountService = mockAccountServiceWith(mockUserId);
++
++    sut = new UserVerificationService(
++      cryptoService,
++      accountService,
++      masterPasswordService,
++      i18nService,
++      userVerificationApiService,
++      userDecryptionOptionsService,
++      pinService,
++      logService,
++      vaultTimeoutSettingsService,
++      platformUtilsService,
++      kdfConfigService,
++    );
++  });
++
++  describe("getAvailableVerificationOptions", () => {
++    describe("client verification type", () => {
++      it("correctly returns master password availability", async () => {
++        setMasterPasswordAvailability(true);
++        setPinAvailability("DISABLED");
++        disableBiometricsAvailability();
++
++        const result = await sut.getAvailableVerificationOptions("client");
++
++        expect(result).toEqual({
++          client: {
++            masterPassword: true,
++            pin: false,
++            biometrics: false,
++          },
++          server: {
++            masterPassword: false,
++            otp: false,
++          },
++        });
++      });
++
++      test.each([
++        [true, "PERSISTENT"],
++        [true, "EPHEMERAL"],
++        [false, "DISABLED"],
++      ])(
++        "returns %s for PIN availability when pin lock type is %s",
++        async (expectedPin: boolean, pinLockType: PinLockType) => {
++          setMasterPasswordAvailability(false);
++          setPinAvailability(pinLockType);
++          disableBiometricsAvailability();
++
++          const result = await sut.getAvailableVerificationOptions("client");
++
++          expect(result).toEqual({
++            client: {
++              masterPassword: false,
++              pin: expectedPin,
++              biometrics: false,
++            },
++            server: {
++              masterPassword: false,
++              otp: false,
++            },
++          });
++        },
++      );
++
++      test.each([
++        [true, true, true, true],
++        [true, true, true, false],
++        [true, true, false, false],
++        [false, true, false, true],
++        [false, false, false, false],
++        [false, false, true, false],
++        [false, false, false, true],
++      ])(
++        "returns %s for biometrics availability when isBiometricLockSet is %s, hasUserKeyStored is %s, and supportsSecureStorage is %s",
++        async (
++          expectedReturn: boolean,
++          isBiometricsLockSet: boolean,
++          isBiometricsUserKeyStored: boolean,
++          platformSupportSecureStorage: boolean,
++        ) => {
++          setMasterPasswordAvailability(false);
++          setPinAvailability("DISABLED");
++          vaultTimeoutSettingsService.isBiometricLockSet.mockResolvedValue(isBiometricsLockSet);
++          cryptoService.hasUserKeyStored.mockResolvedValue(isBiometricsUserKeyStored);
++          platformUtilsService.supportsSecureStorage.mockReturnValue(platformSupportSecureStorage);
++
++          const result = await sut.getAvailableVerificationOptions("client");
++
++          expect(result).toEqual({
++            client: {
++              masterPassword: false,
++              pin: false,
++              biometrics: expectedReturn,
++            },
++            server: {
++              masterPassword: false,
++              otp: false,
++            },
++          });
++        },
++      );
++    });
++
++    describe("server verification type", () => {
++      it("correctly returns master password availability", async () => {
++        userDecryptionOptionsService.userDecryptionOptionsById$.mockReturnValue(
++          of({
++            hasMasterPassword: true,
++          } as UserDecryptionOptions),
++        );
++
++        const result = await sut.getAvailableVerificationOptions("server");
++
++        expect(result).toEqual({
++          client: {
++            masterPassword: false,
++            pin: false,
++            biometrics: false,
++          },
++          server: {
++            masterPassword: true,
++            otp: false,
++          },
++        });
++      });
++
++      it("correctly returns OTP availability", async () => {
++        userDecryptionOptionsService.userDecryptionOptionsById$.mockReturnValue(
++          of({
++            hasMasterPassword: false,
++          } as UserDecryptionOptions),
++        );
++
++        const result = await sut.getAvailableVerificationOptions("server");
++
++        expect(result).toEqual({
++          client: {
++            masterPassword: false,
++            pin: false,
++            biometrics: false,
++          },
++          server: {
++            masterPassword: false,
++            otp: true,
++          },
++        });
++      });
++    });
++  });
++
++  describe("verifyUserByMasterPassword", () => {
++    beforeAll(() => {
++      i18nService.t.calledWith("invalidMasterPassword").mockReturnValue("Invalid master password");
++
++      kdfConfigService.getKdfConfig.mockResolvedValue("kdfConfig" as unknown as KdfConfig);
++      masterPasswordService.masterKey$.mockReturnValue(of("masterKey" as unknown as MasterKey));
++      cryptoService.hashMasterKey
++        .calledWith("password", "masterKey" as unknown as MasterKey, HashPurpose.LocalAuthorization)
++        .mockResolvedValue("localHash");
++    });
++
++    describe("client-side verification", () => {
++      beforeEach(() => {
++        setMasterPasswordAvailability(true);
++      });
++
++      it("returns if verification is successful", async () => {
++        cryptoService.compareAndUpdateKeyHash.mockResolvedValueOnce(true);
++
++        const result = await sut.verifyUserByMasterPassword(
++          {
++            type: VerificationType.MasterPassword,
++            secret: "password",
++          } as MasterPasswordVerification,
++          mockUserId,
++          "email",
++        );
++
++        expect(cryptoService.compareAndUpdateKeyHash).toHaveBeenCalled();
++        expect(masterPasswordService.setMasterKeyHash).toHaveBeenCalledWith(
++          "localHash",
++          mockUserId,
++        );
++        expect(masterPasswordService.setMasterKey).toHaveBeenCalledWith("masterKey", mockUserId);
++        expect(result).toEqual({
++          policyOptions: null,
++          masterKey: "masterKey",
++        });
++      });
++
++      it("throws if verification fails", async () => {
++        cryptoService.compareAndUpdateKeyHash.mockResolvedValueOnce(false);
++
++        await expect(
++          sut.verifyUserByMasterPassword(
++            {
++              type: VerificationType.MasterPassword,
++              secret: "password",
++            } as MasterPasswordVerification,
++            mockUserId,
++            "email",
++          ),
++        ).rejects.toThrow("Invalid master password");
++
++        expect(cryptoService.compareAndUpdateKeyHash).toHaveBeenCalled();
++        expect(masterPasswordService.setMasterKeyHash).not.toHaveBeenCalledWith();
++        expect(masterPasswordService.setMasterKey).not.toHaveBeenCalledWith();
++      });
++    });
++
++    describe("server-side verification", () => {
++      beforeEach(() => {
++        setMasterPasswordAvailability(false);
++      });
++
++      it("returns if verification is successful", async () => {
++        cryptoService.hashMasterKey
++          .calledWith(
++            "password",
++            "masterKey" as unknown as MasterKey,
++            HashPurpose.ServerAuthorization,
++          )
++          .mockResolvedValueOnce("serverHash");
++        userVerificationApiService.postAccountVerifyPassword.mockResolvedValueOnce(
++          "MasterPasswordPolicyOptions" as unknown as MasterPasswordPolicyResponse,
++        );
++
++        const result = await sut.verifyUserByMasterPassword(
++          {
++            type: VerificationType.MasterPassword,
++            secret: "password",
++          } as MasterPasswordVerification,
++          mockUserId,
++          "email",
++        );
++
++        expect(cryptoService.compareAndUpdateKeyHash).not.toHaveBeenCalled();
++        expect(masterPasswordService.setMasterKeyHash).toHaveBeenCalledWith(
++          "localHash",
++          mockUserId,
++        );
++        expect(masterPasswordService.setMasterKey).toHaveBeenCalledWith("masterKey", mockUserId);
++        expect(result).toEqual({
++          policyOptions: "MasterPasswordPolicyOptions",
++          masterKey: "masterKey",
++        });
++      });
++
++      it("throws if verification fails", async () => {
++        cryptoService.hashMasterKey
++          .calledWith(
++            "password",
++            "masterKey" as unknown as MasterKey,
++            HashPurpose.ServerAuthorization,
++          )
++          .mockResolvedValueOnce("serverHash");
++        userVerificationApiService.postAccountVerifyPassword.mockRejectedValueOnce(new Error());
++
++        await expect(
++          sut.verifyUserByMasterPassword(
++            {
++              type: VerificationType.MasterPassword,
++              secret: "password",
++            } as MasterPasswordVerification,
++            mockUserId,
++            "email",
++          ),
++        ).rejects.toThrow("Invalid master password");
++
++        expect(cryptoService.compareAndUpdateKeyHash).not.toHaveBeenCalled();
++        expect(masterPasswordService.setMasterKeyHash).not.toHaveBeenCalledWith();
++        expect(masterPasswordService.setMasterKey).not.toHaveBeenCalledWith();
++      });
++    });
++
++    describe("error handling", () => {
++      it("throws if any of the parameters are nullish", async () => {
++        await expect(
++          sut.verifyUserByMasterPassword(
++            {
++              type: VerificationType.MasterPassword,
++              secret: null,
++            } as MasterPasswordVerification,
++            mockUserId,
++            "email",
++          ),
++        ).rejects.toThrow(
++          "Master Password is required. Cannot verify user without a master password.",
++        );
++
++        await expect(
++          sut.verifyUserByMasterPassword(
++            {
++              type: VerificationType.MasterPassword,
++              secret: "password",
++            } as MasterPasswordVerification,
++            null,
++            "email",
++          ),
++        ).rejects.toThrow("User ID is required. Cannot verify user by master password.");
++
++        await expect(
++          sut.verifyUserByMasterPassword(
++            {
++              type: VerificationType.MasterPassword,
++              secret: "password",
++            } as MasterPasswordVerification,
++            mockUserId,
++            null,
++          ),
++        ).rejects.toThrow("Email is required. Cannot verify user by master password.");
++      });
++
++      it("throws if kdf config is not available", async () => {
++        kdfConfigService.getKdfConfig.mockResolvedValueOnce(null);
++
++        await expect(
++          sut.verifyUserByMasterPassword(
++            {
++              type: VerificationType.MasterPassword,
++              secret: "password",
++            } as MasterPasswordVerification,
++            mockUserId,
++            "email",
++          ),
++        ).rejects.toThrow("KDF config is required. Cannot verify user by master password.");
++      });
++
++      it("throws if master key cannot be created", async () => {
++        kdfConfigService.getKdfConfig.mockResolvedValueOnce("kdfConfig" as unknown as KdfConfig);
++        masterPasswordService.masterKey$.mockReturnValueOnce(of(null));
++        cryptoService.makeMasterKey.mockResolvedValueOnce(null);
++
++        await expect(
++          sut.verifyUserByMasterPassword(
++            {
++              type: VerificationType.MasterPassword,
++              secret: "password",
++            } as MasterPasswordVerification,
++            mockUserId,
++            "email",
++          ),
++        ).rejects.toThrow("Master key could not be created to verify the master password.");
++      });
++    });
++  });
++
++  // Helpers
++  function setMasterPasswordAvailability(hasMasterPassword: boolean) {
++    userDecryptionOptionsService.userDecryptionOptionsById$.mockReturnValue(
++      of({
++        hasMasterPassword: hasMasterPassword,
++      } as UserDecryptionOptions),
++    );
++    masterPasswordService.masterKeyHash$.mockReturnValue(
++      of(hasMasterPassword ? "masterKeyHash" : null),
++    );
++  }
++
++  function setPinAvailability(type: PinLockType) {
++    pinService.getPinLockType.mockResolvedValue(type);
++  }
++
++  function disableBiometricsAvailability() {
++    vaultTimeoutSettingsService.isBiometricLockSet.mockResolvedValue(false);
++  }
++});
+diff --git a/libs/common/src/auth/services/user-verification/user-verification.service.ts b/libs/common/src/auth/services/user-verification/user-verification.service.ts
+index 85640519ec..50fe7b3add 100644
+--- a/libs/common/src/auth/services/user-verification/user-verification.service.ts
++++ b/libs/common/src/auth/services/user-verification/user-verification.service.ts
+@@ -8,7 +8,7 @@ import { CryptoService } from "../../../platform/abstractions/crypto.service";
+ import { I18nService } from "../../../platform/abstractions/i18n.service";
+ import { LogService } from "../../../platform/abstractions/log.service";
+ import { PlatformUtilsService } from "../../../platform/abstractions/platform-utils.service";
+-import { StateService } from "../../../platform/abstractions/state.service";
++import { HashPurpose } from "../../../platform/enums";
+ import { KeySuffixOptions } from "../../../platform/enums/key-suffix-options.enum";
+ import { UserId } from "../../../types/guid";
+ import { UserKey } from "../../../types/key";
+@@ -20,9 +20,11 @@ import { UserVerificationService as UserVerificationServiceAbstraction } from ".
+ import { VerificationType } from "../../enums/verification-type";
+ import { SecretVerificationRequest } from "../../models/request/secret-verification.request";
+ import { VerifyOTPRequest } from "../../models/request/verify-otp.request";
++import { MasterPasswordPolicyResponse } from "../../models/response/master-password-policy.response";
+ import { UserVerificationOptions } from "../../types/user-verification-options";
+ import {
+   MasterPasswordVerification,
++  MasterPasswordVerificationResponse,
+   OtpVerification,
+   PinVerification,
+   ServerSideVerification,
+@@ -37,7 +39,6 @@ import {
+  */
+ export class UserVerificationService implements UserVerificationServiceAbstraction {
+   constructor(
+-    private stateService: StateService,
+     private cryptoService: CryptoService,
+     private accountService: AccountService,
+     private masterPasswordService: InternalMasterPasswordServiceAbstraction,
+@@ -54,14 +55,14 @@ export class UserVerificationService implements UserVerificationServiceAbstracti
+   async getAvailableVerificationOptions(
+     verificationType: keyof UserVerificationOptions,
+   ): Promise<UserVerificationOptions> {
++    const userId = (await firstValueFrom(this.accountService.activeAccount$))?.id;
+     if (verificationType === "client") {
+-      const userId = (await firstValueFrom(this.accountService.activeAccount$))?.id;
+       const [userHasMasterPassword, pinLockType, biometricsLockSet, biometricsUserKeyStored] =
+         await Promise.all([
+-          this.hasMasterPasswordAndMasterKeyHash(),
++          this.hasMasterPasswordAndMasterKeyHash(userId),
+           this.pinService.getPinLockType(userId),
+-          this.vaultTimeoutSettingsService.isBiometricLockSet(),
+-          this.cryptoService.hasUserKeyStored(KeySuffixOptions.Biometric),
++          this.vaultTimeoutSettingsService.isBiometricLockSet(userId),
++          this.cryptoService.hasUserKeyStored(KeySuffixOptions.Biometric, userId),
+         ]);
+ 
+       // note: we do not need to check this.platformUtilsService.supportsBiometric() because
+@@ -83,7 +84,7 @@ export class UserVerificationService implements UserVerificationServiceAbstracti
+     } else {
+       // server
+       // Don't check if have MP hash locally, because we are going to send the secret to the server to be verified.
+-      const userHasMasterPassword = await this.hasMasterPassword();
++      const userHasMasterPassword = await this.hasMasterPassword(userId);
+ 
+       return {
+         client: {
+@@ -96,12 +97,6 @@ export class UserVerificationService implements UserVerificationServiceAbstracti
+     }
+   }
+ 
+-  /**
+-   * Create a new request model to be used for server-side verification
+-   * @param verification User-supplied verification data (Master Password or OTP)
+-   * @param requestClass The request model to create
+-   * @param alreadyHashed Whether the master password is already hashed
+-   */
+   async buildRequest<T extends SecretVerificationRequest>(
+     verification: ServerSideVerification,
+     requestClass?: new () => T,
+@@ -134,11 +129,6 @@ export class UserVerificationService implements UserVerificationServiceAbstracti
+     return request;
+   }
+ 
+-  /**
+-   * Used to verify Master Password, PIN, or biometrics client-side, or send the OTP to the server for verification (with no other data)
+-   * Generally used for client-side verification only.
+-   * @param verification User-supplied verification data (OTP, MP, PIN, or biometrics)
+-   */
+   async verifyUser(verification: Verification): Promise<boolean> {
+     if (verification == null) {
+       throw new Error("Verification is required.");
+@@ -156,7 +146,8 @@ export class UserVerificationService implements UserVerificationServiceAbstracti
+       case VerificationType.OTP:
+         return this.verifyUserByOTP(verification);
+       case VerificationType.MasterPassword:
+-        return this.verifyUserByMasterPassword(verification, userId, email);
++        await this.verifyUserByMasterPassword(verification, userId, email);
++        return true;
+       case VerificationType.PIN:
+         return this.verifyUserByPIN(verification, userId);
+       case VerificationType.Biometrics:
+@@ -179,33 +170,70 @@ export class UserVerificationService implements UserVerificationServiceAbstracti
+     return true;
+   }
+ 
+-  private async verifyUserByMasterPassword(
++  async verifyUserByMasterPassword(
+     verification: MasterPasswordVerification,
+     userId: UserId,
+     email: string,
+-  ): Promise<boolean> {
++  ): Promise<MasterPasswordVerificationResponse> {
++    if (!verification.secret) {
++      throw new Error("Master Password is required. Cannot verify user without a master password.");
++    }
+     if (!userId) {
+       throw new Error("User ID is required. Cannot verify user by master password.");
+     }
++    if (!email) {
++      throw new Error("Email is required. Cannot verify user by master password.");
++    }
++
++    const kdfConfig = await this.kdfConfigService.getKdfConfig();
++    if (!kdfConfig) {
++      throw new Error("KDF config is required. Cannot verify user by master password.");
++    }
+ 
+     let masterKey = await firstValueFrom(this.masterPasswordService.masterKey$(userId));
+     if (!masterKey) {
+-      masterKey = await this.cryptoService.makeMasterKey(
++      masterKey = await this.cryptoService.makeMasterKey(verification.secret, email, kdfConfig);
++    }
++
++    if (!masterKey) {
++      throw new Error("Master key could not be created to verify the master password.");
++    }
++
++    let policyOptions: MasterPasswordPolicyResponse | null;
++    // Client-side verification
++    if (await this.hasMasterPasswordAndMasterKeyHash(userId)) {
++      const passwordValid = await this.cryptoService.compareAndUpdateKeyHash(
+         verification.secret,
+-        email,
+-        await this.kdfConfigService.getKdfConfig(),
++        masterKey,
+       );
++      if (!passwordValid) {
++        throw new Error(this.i18nService.t("invalidMasterPassword"));
++      }
++      policyOptions = null;
++    } else {
++      // Server-side verification
++      const request = new SecretVerificationRequest();
++      const serverKeyHash = await this.cryptoService.hashMasterKey(
++        verification.secret,
++        masterKey,
++        HashPurpose.ServerAuthorization,
++      );
++      request.masterPasswordHash = serverKeyHash;
++      try {
++        policyOptions = await this.userVerificationApiService.postAccountVerifyPassword(request);
++      } catch (e) {
++        throw new Error(this.i18nService.t("invalidMasterPassword"));
++      }
+     }
+-    const passwordValid = await this.cryptoService.compareAndUpdateKeyHash(
++
++    const localKeyHash = await this.cryptoService.hashMasterKey(
+       verification.secret,
+       masterKey,
++      HashPurpose.LocalAuthorization,
+     );
+-    if (!passwordValid) {
+-      throw new Error(this.i18nService.t("invalidMasterPassword"));
+-    }
+-    // TODO: we should re-evaluate later on if user verification should have the side effect of modifying state. Probably not.
++    await this.masterPasswordService.setMasterKeyHash(localKeyHash, userId);
+     await this.masterPasswordService.setMasterKey(masterKey, userId);
+-    return true;
++    return { policyOptions, masterKey };
+   }
+ 
+   private async verifyUserByPIN(verification: PinVerification, userId: UserId): Promise<boolean> {
+@@ -236,13 +264,6 @@ export class UserVerificationService implements UserVerificationServiceAbstracti
+     await this.userVerificationApiService.postAccountRequestOTP();
+   }
+ 
+-  /**
+-   * Check if user has master password or can only use passwordless technologies to log in
+-   * Note: This only checks the server, not the local state
+-   * @param userId The user id to check. If not provided, the current user is used
+-   * @returns True if the user has a master password
+-   * @deprecated Use UserDecryptionOptionsService.hasMasterPassword$ instead
+-   */
+   async hasMasterPassword(userId?: string): Promise<boolean> {
+     if (userId) {
+       const decryptionOptions = await firstValueFrom(
+diff --git a/libs/common/src/auth/types/verification.ts b/libs/common/src/auth/types/verification.ts
+index 8bb0813be7..2dddd5fb91 100644
+--- a/libs/common/src/auth/types/verification.ts
++++ b/libs/common/src/auth/types/verification.ts
+@@ -1,4 +1,6 @@
++import { MasterKey } from "../../types/key";
+ import { VerificationType } from "../enums/verification-type";
++import { MasterPasswordPolicyResponse } from "../models/response/master-password-policy.response";
+ 
+ export type OtpVerification = { type: VerificationType.OTP; secret: string };
+ export type MasterPasswordVerification = { type: VerificationType.MasterPassword; secret: string };
+@@ -17,3 +19,8 @@ export function verificationHasSecret(
+ }
+ 
+ export type ServerSideVerification = OtpVerification | MasterPasswordVerification;
++
++export type MasterPasswordVerificationResponse = {
++  masterKey: MasterKey;
++  policyOptions: MasterPasswordPolicyResponse;
++};
+diff --git a/libs/common/src/services/api.service.ts b/libs/common/src/services/api.service.ts
+index bae9a34c10..a2b37f0a1d 100644
+--- a/libs/common/src/services/api.service.ts
++++ b/libs/common/src/services/api.service.ts
+@@ -70,7 +70,6 @@ import { IdentityCaptchaResponse } from "../auth/models/response/identity-captch
+ import { IdentityTokenResponse } from "../auth/models/response/identity-token.response";
+ import { IdentityTwoFactorResponse } from "../auth/models/response/identity-two-factor.response";
+ import { KeyConnectorUserKeyResponse } from "../auth/models/response/key-connector-user-key.response";
+-import { MasterPasswordPolicyResponse } from "../auth/models/response/master-password-policy.response";
+ import { PreloginResponse } from "../auth/models/response/prelogin.response";
+ import { RegisterResponse } from "../auth/models/response/register.response";
+ import { SsoPreValidateResponse } from "../auth/models/response/sso-pre-validate.response";
+@@ -424,12 +423,6 @@ export class ApiService implements ApiServiceAbstraction {
+     return this.send("POST", "/accounts/verify-email-token", request, false, false);
+   }
+ 
+-  postAccountVerifyPassword(
+-    request: SecretVerificationRequest,
+-  ): Promise<MasterPasswordPolicyResponse> {
+-    return this.send("POST", "/accounts/verify-password", request, true, true);
+-  }
+-
+   postAccountRecoverDelete(request: DeleteRecoverRequest): Promise<any> {
+     return this.send("POST", "/accounts/delete-recover", request, false, false);
+   }
 diff --git a/libs/components/src/tw-theme.css b/libs/components/src/tw-theme.css
 index 00ab2ff717..0950b9d787 100644
 --- a/libs/components/src/tw-theme.css
