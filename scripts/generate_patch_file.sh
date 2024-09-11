@@ -23,12 +23,14 @@ fi
 PATCH_FILENAME="${VAULT_VERSION}.patch"
 
 if [ "$(git status --porcelain | wc -l)" -ge 1 ]; then
-    git --no-pager diff --no-color --minimal --abbrev=10 -- . \
+    git add -A
+    git --no-pager diff --cached --no-color --minimal --abbrev=10 -- . \
       ':!package-lock.json' \
       ':!apps/web/src/favicon.ico' \
       ':!apps/web/src/images/logo-dark@2x.png' \
       ':!apps/web/src/images/logo-white@2x.png' \
       ':!apps/web/src/images/icon-white.png' \
+      ':!apps/web/src/images/icon-dark.png' \
       ':!apps/web/src/images/icons/android-chrome-192x192.png' \
       ':!apps/web/src/images/icons/android-chrome-512x512.png' \
       ':!apps/web/src/images/icons/apple-touch-icon.png' \
@@ -40,6 +42,7 @@ if [ "$(git status --porcelain | wc -l)" -ge 1 ]; then
       ':!apps/web/src/app/layouts/password-manager-logo.ts' \
       ':!bitwarden_license/' \
       > "../patches/${PATCH_FILENAME}"
+    git reset -q
     echo "Patch has been created here: patches/${PATCH_FILENAME}"
 else
     echo "No changes found, skip generating a patch file."

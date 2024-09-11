@@ -666,10 +666,10 @@ index 8dd63e62dd..1a1e45cc35 100644
      } else {
        // Remove reset password
 diff --git a/apps/web/src/index.html b/apps/web/src/index.html
-index c3a2c03ed9..1a326771a6 100644
+index c3a2c03ed9..bbfa9aae9e 100644
 --- a/apps/web/src/index.html
 +++ b/apps/web/src/index.html
-@@ -5,7 +5,7 @@
+@@ -5,19 +5,21 @@
      <meta name="viewport" content="width=1010" />
      <meta name="theme-color" content="#175DDC" />
  
@@ -678,7 +678,13 @@ index c3a2c03ed9..1a326771a6 100644
  
      <link rel="apple-touch-icon" sizes="180x180" href="images/icons/apple-touch-icon.png" />
      <link rel="icon" type="image/png" sizes="32x32" href="images/icons/favicon-32x32.png" />
-@@ -17,7 +17,7 @@
+     <link rel="icon" type="image/png" sizes="16x16" href="images/icons/favicon-16x16.png" />
+     <link rel="mask-icon" href="images/icons/safari-pinned-tab.svg" color="#175DDC" />
+     <link rel="manifest" href="manifest.json" />
++    <!-- webpackIgnore: true -->
++    <link rel="stylesheet" href="css/vaultwarden.css" />
+   </head>
+   <body class="layout_frontend">
      <app-root>
        <div class="mt-5 d-flex justify-content-center">
          <div>
@@ -707,91 +713,6 @@ index 92a1204c60..d9ff4771a3 100644
 +  "theme_color": "#FFFFFF",
 +  "background_color": "#FFFFFF"
  }
-diff --git a/apps/web/src/scss/styles.scss b/apps/web/src/scss/styles.scss
-index 8fbea200a9..e3ff719ab2 100644
---- a/apps/web/src/scss/styles.scss
-+++ b/apps/web/src/scss/styles.scss
-@@ -53,3 +53,80 @@
- @import "./plugins";
- @import "./tables";
- @import "./vault-filters";
-+
-+/**** START Vaultwarden CHANGES ****/
-+/* This combines all selectors extending it into one */
-+%vw-hide {
-+  display: none !important;
-+}
-+
-+/* This allows searching for the combined style in the browsers dev-tools (look into the head tag) */
-+.vw-hide,
-+head {
-+  @extend %vw-hide;
-+}
-+
-+/* Hide the Subscription Page tab */
-+bit-nav-item[route="settings/subscription"] {
-+  @extend %vw-hide;
-+}
-+
-+/* Hide any link pointing to Free Bitwarden Families */
-+a[href$="/settings/sponsored-families"] {
-+  @extend %vw-hide;
-+}
-+
-+/* Hide the `Enterprise Single Sign-On` button on the login page */
-+a[routerlink="/sso"] {
-+  @extend %vw-hide;
-+}
-+
-+/* Hide Two-Factor menu in Organization settings */
-+bit-nav-item[route="settings/two-factor"],
-+a[href$="/settings/two-factor"] {
-+  @extend %vw-hide;
-+}
-+
-+/* Hide Business Owned checkbox */
-+app-org-info > form:nth-child(1) > div:nth-child(3) {
-+  @extend %vw-hide;
-+}
-+
-+/* Hide the `This account is owned by a business` checkbox and label */
-+#ownedBusiness,
-+label[for^="ownedBusiness"] {
-+  @extend %vw-hide;
-+}
-+
-+/* Hide the radio button and label for the `Custom` org user type */
-+#userTypeCustom,
-+label[for^="userTypeCustom"] {
-+  @extend %vw-hide;
-+}
-+
-+/* Hide Business Name */
-+app-org-account form div bit-form-field.tw-block:nth-child(3) {
-+  @extend %vw-hide;
-+}
-+
-+/* Hide organization plans */
-+app-organization-plans > form > bit-section:nth-child(2) {
-+  @extend %vw-hide;
-+}
-+
-+/* Hide Device Verification form at the Two Step Login screen */
-+app-security > app-two-factor-setup > form {
-+  @extend %vw-hide;
-+}
-+
-+/* Replace the Bitwarden Shield at the top left with a Vaultwarden icon */
-+.bwi-shield:before {
-+  content: "" !important;
-+  width: 32px !important;
-+  height: 40px !important;
-+  display: block !important;
-+  background-image: url(../images/icon-white.png) !important;
-+  background-repeat: no-repeat;
-+  background-position-y: bottom;
-+}
-+/**** END Vaultwarden CHANGES ****/
 diff --git a/apps/web/tailwind.config.js b/apps/web/tailwind.config.js
 index 08673c3f9a..db1dd55694 100644
 --- a/apps/web/tailwind.config.js
