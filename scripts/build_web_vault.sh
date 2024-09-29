@@ -16,6 +16,8 @@ trap 'handle_error $LINENO $?' ERR
 # Show used versions
 node --version
 npm --version
+#set virtual memory allocation
+export NODE_OPTIONS=--max-old-space-size=4096
 
 # Build
 pushd "${VAULT_FOLDER}"
