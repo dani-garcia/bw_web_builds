@@ -2,15 +2,15 @@
 set -o pipefail -o errexit
 
 function replace_embedded_svg_icon() {
-if [ ! -f $1 ]; then echo "$1 does not exist"; exit -1; fi
-if [ ! -f $2 ]; then echo "$2 does not exist"; exit -1; fi
+if [ ! -f "$1" ]; then echo "$1 does not exist"; exit 255; fi
+if [ ! -f "$2" ]; then echo "$2 does not exist"; exit 255; fi
 
 echo "'$1' -> '$2'"
 
 first='`$'
 last='^`'
 sed -i "/$first/,/$last/{ /$first/{p; r $1
-}; /$last/p; d }" $2
+}; /$last/p; d }" "$2"
 }
 
 # If a patch was not provided, try to choose one
@@ -28,7 +28,7 @@ if [[ -z ${PATCH_NAME} ]]; then
     else
         echo "No exact patch file not found, using latest"
         # If not, use the latest one
-        PATCH_NAME="$(find ../patches/ -type f -print0 | xargs -0 basename -a | sort -V | tail -n1)"
+        PATCH_NAME="$(find ../patches/ -type f -name '*.patch' -print0 | xargs -0 basename -a | sort -V | tail -n1)"
     fi
 fi
 

@@ -1,0 +1,14 @@
+# shellcheck disable=SC2034,SC2148
+# ###
+# Do not use quotes for these variables!
+#
+# These variables will be loaded during the building process
+# This can be useful if you need to provide special variables for NodeJS or other applications
+# Make sure you export variables which are used for external scripts, else they will not be seen!
+# ###
+
+# Configure NodeJS Virtual Memory Allocation
+# NODE_OPTIONS=--max-old-space-size=4096
+# export NODE_OPTIONS
+
+# vim: syntax=sh filetype=sh

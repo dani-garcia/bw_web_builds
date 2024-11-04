@@ -6,6 +6,7 @@ web-vault/
 
 # Other
 .env
+.build_env
 .vscode
 
 # Release files
