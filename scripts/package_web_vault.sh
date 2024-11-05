@@ -2,6 +2,7 @@
 set -o pipefail -o errexit
 BASEDIR=$(RL=$(readlink -n "$0"); SP="${RL:-$0}"; dirname "$(cd "$(dirname "${SP}")"; pwd)/$(basename "${SP}")")
 
+# Error handling
 handle_error() {
     read -n1 -r -p "FAILED: line $1, exit code $2. Press any key to exit..." _
     exit 1
