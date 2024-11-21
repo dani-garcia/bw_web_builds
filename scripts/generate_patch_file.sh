@@ -43,6 +43,7 @@ if [ "$(git status --porcelain | wc -l)" -ge 1 ]; then
       ':!libs/auth/src/angular/icons/bitwarden-logo.icon.ts' \
       ':!libs/auth/src/angular/icons/bitwarden-shield.icon.ts' \
       ':!bitwarden_license/' \
+      ':!apps/web/src/app/tools/access-intelligence/' \
       > "../patches/${PATCH_FILENAME}"
     echo "Patch has been created here: patches/${PATCH_FILENAME}"
 else

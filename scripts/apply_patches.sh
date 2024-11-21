@@ -57,6 +57,7 @@ replace_embedded_svg_icon \
 
 echo "Remove non-free bitwarden_license/ code"
 rm -rf ./bitwarden_license/
+rm -rf ./apps/web/src/app/tools/access-intelligence/
 
 echo "Using patch: ${PATCH_NAME}"
 git apply "../patches/${PATCH_NAME}" --reject
