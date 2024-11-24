@@ -45,7 +45,7 @@ RUN mv "${VAULT_FOLDER}/apps/web/build" ./web-vault
 
 RUN tar -czvf "bw_web_vault.tar.gz" web-vault --owner=0 --group=0
 # Output the sha256sum here so people are able to match the sha256sum from the CI with the assets and the downloaded version if needed
-RUN echo "sha256sum: $(sha256sum "bw_web_vault.tar.gz")"
+RUN echo "sha256sum: $(sha256sum bw_web_vault.tar.gz)"
 
 # We copy the final result as a separate empty image so there's no need to download all the intermediate steps
 # The result is included both uncompressed and as a tar.gz, to be able to use it in the docker images and the github releases directly

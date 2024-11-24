@@ -1,0 +1,56 @@
+<svg width="32" height="32" version="1.1" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<title>Vaultwarden Icon - White</title>
+<g transform="matrix(.30440883 0 0 .30440883 16 16)">
+<g mask="url(#d)" stroke="#fff">
+<path d="m-31.1718-33.813208c8.83201 24.7296277 17.664019 49.459255 26.496029 74.188883h9.3515399c8.8320101-24.729628 17.6640201-49.4592553 26.4960301-74.188883h-9.767164c-6.388585 18.405568-13.0829736 36.7098119-19.2404689 55.191945-0.9310514 1.958533-1.72876187 8.680017-2.35249682 7.690666-2.98202778-12.981688-8.14083658-25.3121482-12.35366128-37.9202076-2.91958-8.3208014-5.839159-16.6416024-8.758738-24.9624034z" fill="#fff" stroke-width="4.51171"/>
+<circle transform="scale(-1,1)" r="43" fill="none" stroke-width="9"/>
+<g transform="scale(-1,1)" fill="#fff" stroke="#fff">
+<polygon id="a" points="46 3 51 0 46 -3" fill="#fff" stroke="#fff" stroke-linejoin="round" stroke-width="3"/>
+<use transform="rotate(11.25)" xlink:href="#a"/>
+<use transform="rotate(22.5)" xlink:href="#a"/>
+<use transform="rotate(33.75)" xlink:href="#a"/>
+<use transform="rotate(45)" xlink:href="#a"/>
+<use transform="rotate(56.25)" xlink:href="#a"/>
+<use transform="rotate(67.5)" xlink:href="#a"/>
+<use transform="rotate(78.75)" xlink:href="#a"/>
+<use transform="rotate(90)" xlink:href="#a"/>
+<use transform="rotate(101.25)" xlink:href="#a"/>
+<use transform="rotate(112.5)" xlink:href="#a"/>
+<use transform="rotate(123.75)" xlink:href="#a"/>
+<use transform="rotate(135)" xlink:href="#a"/>
+<use transform="rotate(146.25)" xlink:href="#a"/>
+<use transform="rotate(157.5)" xlink:href="#a"/>
+<use transform="rotate(168.75)" xlink:href="#a"/>
+<use transform="scale(-1)" xlink:href="#a"/>
+<use transform="rotate(191.25)" xlink:href="#a"/>
+<use transform="rotate(202.5)" xlink:href="#a"/>
+<use transform="rotate(213.75)" xlink:href="#a"/>
+<use transform="rotate(225)" xlink:href="#a"/>
+<use transform="rotate(236.25)" xlink:href="#a"/>
+<use transform="rotate(247.5)" xlink:href="#a"/>
+<use transform="rotate(258.75)" xlink:href="#a"/>
+<use transform="rotate(-90)" xlink:href="#a"/>
+<use transform="rotate(-78.75)" xlink:href="#a"/>
+<use transform="rotate(-67.5)" xlink:href="#a"/>
+<use transform="rotate(-56.25)" xlink:href="#a"/>
+<use transform="rotate(-45)" xlink:href="#a"/>
+<use transform="rotate(-33.75)" xlink:href="#a"/>
+<use transform="rotate(-22.5)" xlink:href="#a"/>
+<use transform="rotate(-11.25)" xlink:href="#a"/>
+<polygon id="b" points="-7 -42 0 -35 7 -42" fill="#fff" stroke="#fff" stroke-linejoin="round" stroke-width="6"/>
+<use transform="rotate(72)" xlink:href="#b"/>
+<use transform="rotate(144)" xlink:href="#b"/>
+<use transform="rotate(216)" xlink:href="#b"/>
+<use transform="rotate(-72)" xlink:href="#b"/>
+</g>
+</g>
+<mask id="d">
+<rect x="-60" y="-60" width="120" height="120" fill="#fff"/>
+<circle id="c" cy="-40" r="3"/>
+<use transform="rotate(72)" xlink:href="#c"/>
+<use transform="rotate(144)" xlink:href="#c"/>
+<use transform="rotate(216)" xlink:href="#c"/>
+<use transform="rotate(-72)" xlink:href="#c"/>
+</mask>
+</g>
+</svg>
