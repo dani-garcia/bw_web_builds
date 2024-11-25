@@ -8,11 +8,18 @@ web-vault
 *.md
 *.txt
 
-# Other
+# IDE files
+.vscode
+.idea
+*.iml
+
+# Environment files
 .env
+.build_env
+
+# Other
 .github
 Makefile
-.vscode
 
 # Release files
 *.tar.gz

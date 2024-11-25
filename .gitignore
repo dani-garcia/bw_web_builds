@@ -1,13 +1,17 @@
 # Local build artifacts
-builds/
-docker_builds/
-container_builds/
-web-vault/
+builds
+docker_builds
+container_builds
+web-vault
 
-# Other
+# IDE files
+.vscode
+.idea
+*.iml
+
+# Environment files
 .env
 .build_env
-.vscode
 
 # Release files
 *.tar.gz
