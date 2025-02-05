@@ -717,6 +717,19 @@ index cb3445abd9..3e5463cd71 100644
      </ng-container>
    </footer>
  </main>
+diff --git a/libs/auth/src/angular/registration/registration-start/registration-start.component.html b/libs/auth/src/angular/registration/registration-start/registration-start.component.html
+index de3611a597..23a7324566 100644
+--- a/libs/auth/src/angular/registration/registration-start/registration-start.component.html
++++ b/libs/auth/src/angular/registration/registration-start/registration-start.component.html
+@@ -53,7 +53,7 @@
+       {{ "continue" | i18n }}
+     </button>
+ 
+-    <p bitTypography="helper" class="tw-text-main tw-text-xs tw-mb-0">
++    <p bitTypography="helper" class="tw-text-main tw-text-xs tw-mb-0" *ngIf="!isSelfHost">
+       {{ "byContinuingYouAgreeToThe" | i18n }}
+       <a
+         bitLink
 diff --git a/libs/components/src/tw-theme.css b/libs/components/src/tw-theme.css
 index 0a5a66337a..af5f0fb57a 100644
 --- a/libs/components/src/tw-theme.css
