@@ -86,7 +86,7 @@ index b3fac56c0b..796a1a817a 100644
          </bit-form-field>
        </div>
 diff --git a/apps/web/src/app/admin-console/organizations/settings/account.component.ts b/apps/web/src/app/admin-console/organizations/settings/account.component.ts
-index f2834b6109..a48d24a982 100644
+index f2834b6109..117907171c 100644
 --- a/apps/web/src/app/admin-console/organizations/settings/account.component.ts
 +++ b/apps/web/src/app/admin-console/organizations/settings/account.component.ts
 @@ -97,7 +97,7 @@ export class AccountComponent implements OnInit, OnDestroy {
@@ -98,14 +98,6 @@ index f2834b6109..a48d24a982 100644
  
      const userId = await firstValueFrom(getUserId(this.accountService.activeAccount$));
      this.route.params
-@@ -195,6 +195,7 @@ export class AccountComponent implements OnInit, OnDestroy {
-   };
- 
-   submitCollectionManagement = async () => {
-+    return; // flexible collections are not supported by Vaultwarden
-     const request = new OrganizationCollectionManagementUpdateRequest();
-     request.limitCollectionCreation =
-       this.collectionManagementFormGroup.value.limitCollectionCreation;
 diff --git a/apps/web/src/app/app.component.html b/apps/web/src/app/app.component.html
 index a39c045e0e..9d72e609b4 100644
 --- a/apps/web/src/app/app.component.html
