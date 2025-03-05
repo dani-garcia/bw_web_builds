@@ -20,11 +20,9 @@ if [[ -z "$VAULT_VERSION" ]]; then
 fi
 
 # Check the format of the provided vault version
-# If this is vYYYY.M.B or YYYY.M.B then fix this automatically to prepend web- or web-v
+# If this is vYYYY.M.B or YYYY.M.B then fix this automatically to prepend `v`
 if [[ "${VAULT_VERSION}" =~ ^20[0-9]{2}\.[0-9]{1,2}.[0-9]{1} ]]; then
-    VAULT_VERSION="web-v${VAULT_VERSION}"
-elif [[ "${VAULT_VERSION}" =~ ^v20[0-9]{2}\.[0-9]{1,2}.[0-9]{1} ]]; then
-    VAULT_VERSION="web-${VAULT_VERSION}"
+    VAULT_VERSION="v${VAULT_VERSION}"
 fi
 
 echo "Using: '${VAULT_VERSION}' to checkout bitwarden/client."
@@ -34,7 +32,7 @@ if [ ! -d "${VAULT_FOLDER}" ]; then
     pushd "${VAULT_FOLDER}"
         # If this is the first time, init the repo and checkout the requested branch/tag/hash
         git -c init.defaultBranch=main init
-        git remote add origin https://github.com/bitwarden/clients.git
+        git remote add vaultwarden https://github.com/vaultwarden/vw_web_builds.git
     popd
 else
     # If there already is a checked-out repo, lets clean it up first.
@@ -55,7 +53,7 @@ fi
 # Checkout the request
 pushd "${VAULT_FOLDER}"
     # Update branch and tag metadata
-    git fetch --depth 1 ${CHECKOUT_ARGS:-} origin "${VAULT_VERSION}"
+    git fetch --depth 1 ${CHECKOUT_ARGS:-} vaultwarden "${VAULT_VERSION}"
     # Checkout the branch we want
     git -c advice.detachedHead=false checkout FETCH_HEAD
 popd
