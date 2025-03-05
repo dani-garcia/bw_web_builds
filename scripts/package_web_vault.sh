@@ -20,10 +20,6 @@ trap 'handle_error $LINENO $?' ERR
 # shellcheck source=checkout_web_vault.sh
 . "${BASEDIR}/checkout_web_vault.sh"
 
-# Patch the web-vault using our patches
-# shellcheck source=patch_web_vault.sh
-. "${BASEDIR}/patch_web_vault.sh"
-
 # Build the web-vault using node and npm
 # shellcheck source=build_web_vault.sh
 . "${BASEDIR}/build_web_vault.sh"
