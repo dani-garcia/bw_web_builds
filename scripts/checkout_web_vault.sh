@@ -34,7 +34,7 @@ if [ ! -d "${VAULT_FOLDER}" ]; then
     pushd "${VAULT_FOLDER}"
         # If this is the first time, init the repo and checkout the requested branch/tag/hash
         git -c init.defaultBranch=main init
-        git remote add origin https://github.com/bitwarden/clients.git
+        git remote add origin https://github.com/vaultwarden/vw_web_builds.git
     popd
 else
     # If there already is a checked-out repo, lets clean it up first.

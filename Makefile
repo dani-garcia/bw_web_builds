@@ -4,7 +4,7 @@ SHELL := bash
 .DELETE_ON_ERROR:
 
 help:
-	@echo "Use either: clean, checkout, patch-web-vault, generate-patch, build, tar, or full"
+	@echo "Use either: clean, checkout, build, tar, or full"
 	@echo "Or for container builds use: container or container-extract"
 	@echo
 	@echo "By default docker is used, you can force podman by using podman or podman-extract"
@@ -40,14 +40,6 @@ checkout:
 	./scripts/checkout_web_vault.sh
 .PHONY: checkout
 
-patch-web-vault:
-	./scripts/patch_web_vault.sh
-.PHONY: patch-web-vault
-
-generate-patch:
-	./scripts/generate_patch_file.sh
-.PHONY: generate-patch
-
 build:
 	./scripts/build_web_vault.sh
 .PHONY: build
@@ -56,7 +48,7 @@ tar:
 	./scripts/tar_web_vault.sh
 .PHONY: tar
 
-full: checkout patch-web-vault build tar
+full: checkout build tar
 .PHONY: full
 
 container:
