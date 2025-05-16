@@ -196,9 +196,18 @@ index 3b765927c3..393e3bc108 100644
      <app-org-info
        (changedBusinessOwned)="changedOwnedBusiness()"
 diff --git a/apps/web/src/app/billing/organizations/organization-plans.component.ts b/apps/web/src/app/billing/organizations/organization-plans.component.ts
-index 59f8dd34c3..139a6691c1 100644
+index 59f8dd34c3..d45d2f66e3 100644
 --- a/apps/web/src/app/billing/organizations/organization-plans.component.ts
 +++ b/apps/web/src/app/billing/organizations/organization-plans.component.ts
+@@ -12,7 +12,7 @@ import {
+ import { FormBuilder, Validators } from "@angular/forms";
+ import { Router } from "@angular/router";
+ import { Subject, firstValueFrom, takeUntil } from "rxjs";
+-import { debounceTime, map, switchMap } from "rxjs/operators";
++import { map, switchMap } from "rxjs/operators";
+ 
+ import { ManageTaxInformationComponent } from "@bitwarden/angular/billing/components";
+ import { ApiService } from "@bitwarden/common/abstractions/api.service";
 @@ -197,13 +197,12 @@ export class OrganizationPlansComponent implements OnInit, OnDestroy {
            .organizations$(userId)
            .pipe(getOrganizationById(this.organizationId)),
@@ -225,7 +234,23 @@ index 59f8dd34c3..139a6691c1 100644
  
      if (!this.createOrganization) {
        this.upgradeFlowPrefillForm();
-@@ -301,6 +301,7 @@ export class OrganizationPlansComponent implements OnInit, OnDestroy {
+@@ -268,6 +268,7 @@ export class OrganizationPlansComponent implements OnInit, OnDestroy {
+ 
+     this.loading = false;
+ 
++    /* no sales tax in vaultwarden
+     this.formGroup.valueChanges.pipe(debounceTime(1000), takeUntil(this.destroy$)).subscribe(() => {
+       this.refreshSalesTax();
+     });
+@@ -285,6 +286,7 @@ export class OrganizationPlansComponent implements OnInit, OnDestroy {
+         additionalServiceAccounts: 0,
+       });
+     }
++    end of sales tax */
+   }
+ 
+   ngOnDestroy() {
+@@ -301,6 +303,7 @@ export class OrganizationPlansComponent implements OnInit, OnDestroy {
    }
  
    get upgradeRequiresPaymentMethod() {
@@ -233,7 +258,7 @@ index 59f8dd34c3..139a6691c1 100644
      return (
        this.organization?.productTierType === ProductTierType.Free &&
        !this.showFree &&
-@@ -336,6 +337,7 @@ export class OrganizationPlansComponent implements OnInit, OnDestroy {
+@@ -336,6 +339,7 @@ export class OrganizationPlansComponent implements OnInit, OnDestroy {
    }
  
    get selectableProducts() {
@@ -241,7 +266,7 @@ index 59f8dd34c3..139a6691c1 100644
      if (this.acceptingSponsorship) {
        const familyPlan = this.passwordManagerPlans.find(
          (plan) => plan.type === PlanType.FamiliesAnnually,
-@@ -367,6 +369,7 @@ export class OrganizationPlansComponent implements OnInit, OnDestroy {
+@@ -367,6 +371,7 @@ export class OrganizationPlansComponent implements OnInit, OnDestroy {
    }
  
    get selectablePlans() {
@@ -249,7 +274,7 @@ index 59f8dd34c3..139a6691c1 100644
      const selectedProductTierType = this.formGroup.controls.productTier.value;
      const result =
        this.passwordManagerPlans?.filter(
-@@ -497,6 +500,7 @@ export class OrganizationPlansComponent implements OnInit, OnDestroy {
+@@ -497,6 +502,7 @@ export class OrganizationPlansComponent implements OnInit, OnDestroy {
    }
  
    get planOffersSecretsManager() {
@@ -257,7 +282,7 @@ index 59f8dd34c3..139a6691c1 100644
      return this.selectedSecretsManagerPlan != null;
    }
  
-@@ -505,6 +509,7 @@ export class OrganizationPlansComponent implements OnInit, OnDestroy {
+@@ -505,6 +511,7 @@ export class OrganizationPlansComponent implements OnInit, OnDestroy {
    }
  
    changedProduct() {
@@ -265,7 +290,7 @@ index 59f8dd34c3..139a6691c1 100644
      const selectedPlan = this.selectablePlans[0];
  
      this.setPlanType(selectedPlan.type);
-@@ -633,9 +638,8 @@ export class OrganizationPlansComponent implements OnInit, OnDestroy {
+@@ -633,9 +640,8 @@ export class OrganizationPlansComponent implements OnInit, OnDestroy {
          const collectionCt = collection.encryptedString;
          const orgKeys = await this.keyService.makeKeyPair(orgKey[1]);
  
@@ -277,7 +302,7 @@ index 59f8dd34c3..139a6691c1 100644
  
          this.toastService.showToast({
            variant: "success",
-@@ -779,7 +783,9 @@ export class OrganizationPlansComponent implements OnInit, OnDestroy {
+@@ -779,7 +785,9 @@ export class OrganizationPlansComponent implements OnInit, OnDestroy {
      request.billingEmail = this.formGroup.controls.billingEmail.value;
      request.initiationPath = "New organization creation in-product";
      request.keys = new OrganizationKeysRequest(orgKeys[0], orgKeys[1].encryptedString);
@@ -287,7 +312,7 @@ index 59f8dd34c3..139a6691c1 100644
      if (this.selectedPlan.type === PlanType.Free) {
        request.planType = PlanType.Free;
      } else {
-@@ -804,6 +810,7 @@ export class OrganizationPlansComponent implements OnInit, OnDestroy {
+@@ -804,6 +812,7 @@ export class OrganizationPlansComponent implements OnInit, OnDestroy {
  
      // Secrets Manager
      this.buildSecretsManagerRequest(request);
@@ -295,7 +320,7 @@ index 59f8dd34c3..139a6691c1 100644
  
      if (this.hasProvider) {
        const providerRequest = new ProviderOrganizationCreateRequest(
-@@ -865,6 +872,7 @@ export class OrganizationPlansComponent implements OnInit, OnDestroy {
+@@ -865,6 +874,7 @@ export class OrganizationPlansComponent implements OnInit, OnDestroy {
    private buildSecretsManagerRequest(
      request: OrganizationCreateRequest | OrganizationUpgradeRequest,
    ): void {
@@ -303,7 +328,7 @@ index 59f8dd34c3..139a6691c1 100644
      const formValues = this.secretsManagerForm.value;
  
      request.useSecretsManager = this.planOffersSecretsManager && formValues.enabled;
-@@ -883,6 +891,7 @@ export class OrganizationPlansComponent implements OnInit, OnDestroy {
+@@ -883,6 +893,7 @@ export class OrganizationPlansComponent implements OnInit, OnDestroy {
    }
  
    private upgradeFlowPrefillForm() {
@@ -644,12 +669,16 @@ index f7d86d2a24..75389727d2 100644
    "settings": {
      "eslint.options": {
 diff --git a/jest.config.js b/jest.config.js
-index e8815f92ff..c635c2fc45 100644
+index e8815f92ff..d752a0bb2a 100644
 --- a/jest.config.js
 +++ b/jest.config.js
-@@ -20,9 +20,6 @@ module.exports = {
-     "<rootDir>/apps/cli/jest.config.js",
-     "<rootDir>/apps/desktop/jest.config.js",
+@@ -16,13 +16,7 @@ module.exports = {
+     prefix: "<rootDir>/",
+   }),
+   projects: [
+-    "<rootDir>/apps/browser/jest.config.js",
+-    "<rootDir>/apps/cli/jest.config.js",
+-    "<rootDir>/apps/desktop/jest.config.js",
      "<rootDir>/apps/web/jest.config.js",
 -    "<rootDir>/bitwarden_license/bit-web/jest.config.js",
 -    "<rootDir>/bitwarden_license/bit-cli/jest.config.js",
