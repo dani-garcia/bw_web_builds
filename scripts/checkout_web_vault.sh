@@ -55,5 +55,5 @@ pushd "${VAULT_FOLDER}"
     # Update branch and tag metadata
     git fetch --depth 1 ${CHECKOUT_ARGS:-} vaultwarden "${VAULT_VERSION}"
     # Checkout the branch we want
-    git -c advice.detachedHead=false checkout FETCH_HEAD
+    git -c advice.detachedHead=false checkout "${VAULT_VERSION}"
 popd
