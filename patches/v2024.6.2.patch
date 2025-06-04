@@ -469,7 +469,7 @@ index e2b3e7910a..fda32e9257 100644
 -              <a bitMenuItem href="https://bitwarden.com/help/" target="_blank" rel="noreferrer">
 +              <a
 +                bitMenuItem
-+                href="https://github.com/dani-garcia/vaultwarden"
++                href="https://github.com/vaultwarden/vaultwarden"
 +                target="_blank"
 +                rel="noreferrer"
 +              >
