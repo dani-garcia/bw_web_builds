@@ -2,6 +2,8 @@
 set -o pipefail -o errexit
 BASEDIR=$(RL=$(readlink -n "$0"); SP="${RL:-$0}"; dirname "$(cd "$(dirname "${SP}")"; pwd)/$(basename "${SP}")")
 
+FALLBACK_WEBVAULT_VERSION=v2025.6.0
+
 # Error handling
 handle_error() {
     read -n1 -r -p "FAILED: line $1, exit code $2. Press any key to exit..." _
@@ -15,8 +17,8 @@ trap 'handle_error $LINENO $?' ERR
 
 # Ask for ref if not provided
 if [[ -z "$VAULT_VERSION" ]]; then
-    read -rp "Input a git ref (commit hash, branch name, tag name, 'main'): " input
-    VAULT_VERSION="${input:-main}"
+    read -rp "Input a git ref (commit hash, branch name, tag name, '${FALLBACK_WEBVAULT_VERSION}'): " input
+    VAULT_VERSION="${input:-${FALLBACK_WEBVAULT_VERSION}}"
 fi
 
 # Check the format of the provided vault version
@@ -43,6 +45,19 @@ else
 
         # Reset hard to make sure no changes are left
         git reset --hard
+
+        VAULTWARDEN_REMOTE=$(git remote get-url vaultwarden || echo -n )
+        if [ "x${VAULTWARDEN_REMOTE}" = "x" ]
+	then
+           echo "adding vaultwarden/vw_web_builds as remote repository"
+           git remote add vaultwarden https://github.com/vaultwarden/vw_web_builds.git
+        elif [ "${VAULTWARDEN_REMOTE}" != "https://github.com/vaultwarden/vw_web_builds.git" ]
+	then
+            echo "Warning: \`git remote get vaultwarden\` did not return the expected repository"
+	    echo "expected: https://github.com/vaultwarden/vw_web_builds.git"
+	    echo "received: ${VAULTWARDEN_REMOTE}"
+	    read -p "Press enter to continue"
+        fi
     popd
 fi
 
