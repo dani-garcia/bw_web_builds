@@ -17,7 +17,7 @@
 #    Note: you can use --build-arg to specify the version to build:
 #    docker build -t web_vault_build --build-arg VAULT_VERSION=main .
 
-FROM node:22-bookworm AS build
+FROM node:22-trixie AS build
 RUN node --version && npm --version
 
 # Can be a tag, release, but prefer a commit hash because it's not changeable
