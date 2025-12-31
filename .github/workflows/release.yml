@@ -1,12 +1,19 @@
 name: Release
+permissions: {}
 
 on:
   push:
     tags:
-      - 'v[0-9]+.[0-9]+.[0-9]+[a-z]?'
+      - 'v[0-9]+.[0-9]+.[0-9]+(\+[0-9]+)?'
 
 jobs:
   docker-build:
+    name: Release web-vault
+    permissions:
+      packages: write # Needed to upload packages and artifacts
+      contents: read
+      # attestations: write # Needed to generate an artifact attestation for a build
+      # id-token: write # Needed to mint the OIDC token necessary to request a Sigstore signing certificate
     runs-on: ubuntu-latest
     env:
       # Force docker to output the progress in plain
@@ -19,7 +26,9 @@ jobs:
       HAVE_GHCR_LOGIN: ${{ vars.GHCR_REPO != '' && github.repository_owner != '' && secrets.GITHUB_TOKEN != '' }}
     steps:
       - name: Checkout
-        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+        with:
+          persist-credentials: false
 
       # Determine Docker Tag
       - name: Init Variables

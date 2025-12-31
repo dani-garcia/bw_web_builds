@@ -1,4 +1,5 @@
 name: CI
+permissions: {}
 
 on:
   pull_request:
@@ -11,13 +12,19 @@ on:
 
 jobs:
   docker-build:
+    name: Test building web-vault
+    permissions:
+      packages: write # Needed to upload packages and artifacts
+      contents: read
     runs-on: ubuntu-latest
     env:
       # Force docker to output the progress in plain
       BUILDKIT_PROGRESS: plain
     steps:
       - name: Checkout
-        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+        with:
+          persist-credentials: false
 
       - name: Build and Extract
         shell: bash
@@ -30,7 +37,7 @@ jobs:
           echo "sha256sum: $(sha256sum container_builds/bw_web_vault.tar.gz)"
 
       - name: "Upload web-vault artifact"
-        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
         with:
           name: web-vault
           compression-level: 0

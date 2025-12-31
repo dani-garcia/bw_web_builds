@@ -42,7 +42,7 @@ if [[ -z "$RELEASE_TAG" ]]; then
 fi
 
 # Check if the RELEASE_TAG starts with vYYYY.M.B and patch letters are allowed like vYYYY.M.Ba
-if [[ ! "${RELEASE_TAG}" =~ ^v20[0-9]{2}\.[0-9]{1,2}.[0-9]{1}[a-z]?$ ]]; then
+if [[ ! "${RELEASE_TAG}" =~ ^v20[0-9]{2}\.[0-9]{1,2}.[0-9]{1}(\+[1-9][0-9]*)?$ ]]; then
     echo "The provided release tag does not meet our standards!"
     echo "'${RELEASE_TAG}' does not match the vYYYY.M.B format."
     exit 1
@@ -74,5 +74,5 @@ if [[ -f "bw_web_${RELEASE_TAG}.tar.gz" ]]; then
     sha256sum "bw_web_${RELEASE_TAG}.tar.gz"* | tee sha256sums.txt
 
     gh release upload "${RELEASE_TAG}" "bw_web_${RELEASE_TAG}.tar.gz" "bw_web_${RELEASE_TAG}.tar.gz.asc" sha256sums.txt
-    gh release edit "${RELEASE_TAG}" --draft=false
+    # gh release edit "${RELEASE_TAG}" --draft=false
 fi
