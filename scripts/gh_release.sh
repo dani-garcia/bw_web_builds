@@ -42,9 +42,9 @@ if [[ -z "$RELEASE_TAG" ]]; then
 fi
 
 # Check if the RELEASE_TAG starts with vYYYY.M.B and patch letters are allowed like vYYYY.M.Ba
-if [[ ! "${RELEASE_TAG}" =~ ^v20[0-9]{2}\.[0-9]{1,2}.[0-9]{1}(\+[1-9][0-9]*)?$ ]]; then
+if [[ ! "${RELEASE_TAG}" =~ ^v20[0-9]{2}\.[0-9]{1,2}.[0-9]{1}(\.[1-9][0-9]*)?$ ]]; then
     echo "The provided release tag does not meet our standards!"
-    echo "'${RELEASE_TAG}' does not match the vYYYY.M.B format."
+    echo "'${RELEASE_TAG}' does not match the vYYYY.M.B(.P) format."
     exit 1
 fi
 
