@@ -41,10 +41,10 @@ if [[ -z "$RELEASE_TAG" ]]; then
     RELEASE_TAG="${input:-${LATEST_REMOTE_TAG}}"
 fi
 
-# Check if the RELEASE_TAG starts with vYYYY.M.B and patch's are allowed like vYYYY.M.B-patch.1
-if [[ ! "${RELEASE_TAG}" =~ ^v20[0-9]{2}\.[0-9]{1,2}.[0-9]{1}(-patch\.[0-9]{1,2})?$ ]]; then
+# Check if the RELEASE_TAG starts with vYYYY.M.B and +build's are allowed like vYYYY.M.B+build.1
+if [[ ! "${RELEASE_TAG}" =~ ^v20[0-9]{2}\.[0-9]{1,2}.[0-9]{1}(\+build\.[0-9]{1,2})?$ ]]; then
     echo "The provided release tag does not meet our standards!"
-    echo "'${RELEASE_TAG}' does not match the vYYYY.M.B(-patch.1) format."
+    echo "'${RELEASE_TAG}' does not match the vYYYY.M.B(+build.1) format."
     exit 1
 fi
 
@@ -65,9 +65,12 @@ while true; do
 done
 
 echo "Extracting tar.gz file from GitHub Container Registry"
-${CONTAINER_CMD} create --name "bw_web_${RELEASE_TAG}" "ghcr.io/dani-garcia/bw_web_builds:${RELEASE_TAG}"
-${CONTAINER_CMD} cp "bw_web_${RELEASE_TAG}:/bw_web_vault.tar.gz" "bw_web_${RELEASE_TAG}.tar.gz"
-${CONTAINER_CMD} rm "bw_web_${RELEASE_TAG}"
+# We use `+build.n` to version patches when there was no change to the web-vault version from upstream
+# Convert `+` chars to `_` since `+` chars are not allowed as container tags
+IMAGE_RELEASE_TAG="${RELEASE_TAG//+/_}"
+${CONTAINER_CMD} create --name "bw_web_${IMAGE_RELEASE_TAG}" "ghcr.io/dani-garcia/bw_web_builds:${IMAGE_RELEASE_TAG}"
+${CONTAINER_CMD} cp "bw_web_${IMAGE_RELEASE_TAG}:/bw_web_vault.tar.gz" "bw_web_${RELEASE_TAG}.tar.gz"
+${CONTAINER_CMD} rm "bw_web_${IMAGE_RELEASE_TAG}"
 
 if [[ -f "bw_web_${RELEASE_TAG}.tar.gz" ]]; then
     gpg --yes --detach-sign --armor --local-user "$GPG_SIGNING_USER" --output "bw_web_${RELEASE_TAG}.tar.gz.asc" "bw_web_${RELEASE_TAG}.tar.gz"

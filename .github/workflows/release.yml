@@ -36,10 +36,14 @@ jobs:
         shell: bash
         run: |
           if [[ "${{ github.ref }}" == refs/tags/* ]]; then
-            echo "DOCKER_TAG=${GITHUB_REF#refs/*/}" | tee -a "${GITHUB_OUTPUT}"
+            DOCKER_TAG="${GITHUB_REF#refs/*/}"
           elif [[ "${{ github.ref }}" == refs/heads/* ]]; then
-            echo "DOCKER_TAG=testing" | tee -a "${GITHUB_OUTPUT}"
+            DOCKER_TAG="testing"
           fi
+          # We use `+build.n` to version patches when there was no change to the web-vault version from upstream
+          # Container images are not allowed to contain `+` chars, replace them with an `_`
+          # Since we do not use container names anyway this isn't an issue for matching and only used for the version
+          echo "DOCKER_TAG=${DOCKER_TAG//+/_}" | tee -a "${GITHUB_OUTPUT}"
 
       # Login to Docker Hub
       - name: Login to Docker Hub
