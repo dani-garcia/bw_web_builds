@@ -33,7 +33,7 @@ if [[ -n "$GPG_SIGNING_USER" ]]; then
 fi
 
 # Get the latest release tag, this should match the tag created with `gh-prepare`
-LATEST_REMOTE_TAG="v$(git -c 'versionsort.suffix=-' ls-remote --tags --refs --sort=creatordate https://github.com/dani-garcia/bw_web_builds.git 'v*' | tail -n1 | grep -Eo '[^\/v]*$')"
+LATEST_REMOTE_TAG="v$(git ls-remote --tags --refs --sort='v:refname' https://github.com/dani-garcia/bw_web_builds.git 'v*' | tail -n1 | grep -Eo '[^\/v]*$')"
 
 # Ask for release tag if not provided, or validate the `$LATEST_REMOTE_TAG`
 if [[ -z "$RELEASE_TAG" ]]; then
