@@ -24,7 +24,7 @@ RUN node --version && npm --version
 # https://github.com/bitwarden/clients/commit/${VAULT_VERSION}
 #
 # Using https://github.com/vaultwarden/vw_web_builds/tree/v2025.12.2
-ARG VAULT_VERSION=16061f91dfc765210cf4063971fe0ffacb07709c
+ARG VAULT_VERSION=94a4707f0e24689d924bc945eaf157c81b50ebf4
 ENV VAULT_VERSION=$VAULT_VERSION
 ENV VAULT_FOLDER=bw_clients
 ENV CHECKOUT_TAGS=false
