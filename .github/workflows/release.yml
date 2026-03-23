@@ -9,6 +9,7 @@ on:
 jobs:
   docker-build:
     name: Release web-vault
+    environment: release
     permissions:
       packages: write # Needed to upload packages and artifacts
       contents: read
