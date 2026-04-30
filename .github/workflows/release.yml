@@ -13,8 +13,8 @@ jobs:
     permissions:
       packages: write # Needed to upload packages and artifacts
       contents: read
-      # attestations: write # Needed to generate an artifact attestation for a build
-      # id-token: write # Needed to mint the OIDC token necessary to request a Sigstore signing certificate
+      attestations: write # Needed to generate an artifact attestation for a build
+      id-token: write # Needed to mint the OIDC token necessary to request a Sigstore signing certificate
     runs-on: ubuntu-latest
     env:
       # Force docker to output the progress in plain
@@ -77,9 +77,31 @@ jobs:
           echo "tags=${tags:+${tags},}${{ vars.GHCR_REPO }}:${{ steps.vars.outputs.DOCKER_TAG }}" \
             | tee -a "${GITHUB_ENV}"
 
+      - name: Setup Docker Buildx
+        uses: docker/setup-buildx-action@4d04d5d9486b7bd6fa91e7baf45bbb4f8b9deedd # v4.0.0
+        with:
+          cache-binary: false
+
       - name: Build and push
         uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6.19.2
+        id: build
         with:
           context: .
           push: true
           tags: ${{ env.tags }}
+
+      - name: Attest - docker.io
+        if: ${{ env.HAVE_DOCKERHUB_LOGIN == 'true' }}
+        uses: actions/attest@59d89421af93a897026c735860bf21b6eb4f7b26 # v4.1.0
+        with:
+          subject-name: ${{ vars.DOCKERHUB_REPO }}
+          subject-digest: ${{ steps.build.outputs.digest }}
+          push-to-registry: true
+
+      - name: Attest - ghcr.io
+        if: ${{ env.HAVE_GHCR_LOGIN == 'true' }}
+        uses: actions/attest@59d89421af93a897026c735860bf21b6eb4f7b26 # v4.1.0
+        with:
+          subject-name: ${{ vars.GHCR_REPO }}
+          subject-digest: ${{ steps.build.outputs.digest }}
+          push-to-registry: true
