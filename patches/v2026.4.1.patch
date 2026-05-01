@@ -1,0 +1,53 @@
+diff --git a/libs/auth/src/angular/login/login.component.html b/libs/auth/src/angular/login/login.component.html
+index f7240601..ebc57dcf 100644
+--- a/libs/auth/src/angular/login/login.component.html
++++ b/libs/auth/src/angular/login/login.component.html
+@@ -13,7 +13,7 @@
+ <form [bitSubmit]="submit" [formGroup]="formGroup">
+   <div [ngClass]="{ 'tw-hidden': loginUiState !== LoginUiState.EMAIL_ENTRY }">
+     <!-- Email Address input -->
+-    <bit-form-field>
++    <bit-form-field class="vw-email-form-field">
+       <bit-label>{{ "emailAddress" | i18n }}</bit-label>
+       <input
+         type="email"
+@@ -37,7 +37,7 @@
+     </bit-form-field>
+ 
+     <!-- Remember Email input -->
+-    <bit-form-control>
++    <bit-form-control class="vw-remember-email">
+       <input
+         type="checkbox"
+         formControlName="rememberEmail"
+diff --git a/libs/auth/src/angular/login/login.component.ts b/libs/auth/src/angular/login/login.component.ts
+index c25ef254..8853260d 100644
+--- a/libs/auth/src/angular/login/login.component.ts
++++ b/libs/auth/src/angular/login/login.component.ts
+@@ -595,17 +595,15 @@ export class LoginComponent implements OnInit, OnDestroy {
+    * @param event - The event object.
+    */
+   async handleSsoClick() {
+-    // Make sure the email is valid
+-    const isEmailValid = this.validateEmail();
+-    if (!isEmailValid) {
+-      return;
+-    }
+-
+-    // Make sure the email is not empty, for type safety
+-    const email = this.formGroup.value.email;
+-    if (!email) {
+-      this.logService.error("Email is required for SSO");
+-      return;
++    // Vaultwarden patch: when the email field is hidden (SSO_ONLY mode) the user has no
++    // way to provide an email and it is not actually needed by the server (single-tenant
++    // SSO uses FAKE_SSO_IDENTIFIER). Only validate when the user has typed something.
++    const email = this.formGroup.value.email ?? "";
++    if (email !== "") {
++      const isEmailValid = this.validateEmail();
++      if (!isEmailValid) {
++        return;
++      }
+     }
+ 
+     // Send the user to SSO, either through routing or through redirecting to the web app
